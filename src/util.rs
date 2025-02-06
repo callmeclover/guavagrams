@@ -1,3 +1,7 @@
+use rand::distr::weighted::WeightedIndex;
+
+use crate::dictionary::LetterDistribution;
+
 /// A macro similar to `vec![$elem; $size]` which returns a boxed array.
 ///
 /// ```rustc
@@ -18,4 +22,9 @@ macro_rules! box_array {
 
         vec_to_boxed_array(vec![$val; $len])
     }};
+}
+
+/// Creates a weighted index from a list of entries and weights.
+pub fn create_weights(list: &LetterDistribution) -> WeightedIndex<usize> {
+    WeightedIndex::new(list.iter().map(|item: &(char, usize)| item.1)).unwrap()
 }

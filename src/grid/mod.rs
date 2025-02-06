@@ -87,6 +87,7 @@ impl Grid {
         Direction::None
     }
 
+    /// Checks every word to ensure it is in the dictionary.
     pub fn validate_words(words: &[String], dictionary: &HashSet<String>) -> Result<(), Error> {
         for word in words.iter().cloned().collect::<HashSet<String>>() {
             if !dictionary.contains(&word) {
