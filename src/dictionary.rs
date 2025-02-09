@@ -1,5 +1,7 @@
 use std::{
-    collections::HashSet, path::{Path, PathBuf}
+    collections::HashSet,
+    path::{Path, PathBuf},
+    sync::LazyLock,
 };
 
 use csv::{Reader, StringRecord};
@@ -73,34 +75,37 @@ impl Distribution {
         ('x'),
         ('y'),
         ('z'),
-    ];
-    const BANANAGRAMS: LetterDistribution = vec![
-        ('a', 13),
-    ('b', 3),
-    ('c', 3),
-    ('d', 6),
-    ('e', 18),
-    ('f', 3),
-    ('g', 4),
-    ('h', 3),
-    ('i', 12),
-    ('j', 2),
-    ('k', 2),
-    ('l'),
-    ('m'),
-    ('n'),
-    ('o'),
-    ('p'),
-    ('q'),
-    ('r'),
-    ('s'),
-    ('t'),
-    ('u'),
-    ('v'),
-    ('w'),
-    ('x'),
-    ('y'),
-    ('z'),];*/
+    ];*/
+    const BANANAGRAMS: LazyLock<LetterDistribution> = LazyLock::new(|| {
+        vec![
+            ('a', 13),
+            ('b', 3),
+            ('c', 3),
+            ('d', 6),
+            ('e', 18),
+            ('f', 3),
+            ('g', 4),
+            ('h', 3),
+            ('i', 12),
+            ('j', 2),
+            ('k', 2),
+            ('l', 5),
+            ('m', 3),
+            ('n', 8),
+            ('o', 11),
+            ('p', 3),
+            ('q', 2),
+            ('r', 9),
+            ('s', 6),
+            ('t', 9),
+            ('u', 6),
+            ('v', 3),
+            ('w', 3),
+            ('x', 2),
+            ('y', 3),
+            ('z', 2),
+        ]
+    });
 
     /// Creates a `Distribution::Dictionary` from a `HashSet`.
     pub fn from_dictionary(dictionary: &HashSet<String>) -> Self {
@@ -125,10 +130,16 @@ impl Distribution {
         )
     }
 
-    #[allow(clippy::cast_precision_loss, clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+    #[allow(
+        clippy::cast_precision_loss,
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss
+    )]
     fn create_pile_internals(letter_distribution: &LetterDistribution, amount: usize) -> Vec<char> {
         let mut output: Vec<char> = Vec::new();
-        let total_letters: f64 = letter_distribution.iter().fold(0.0, |total: f64, (.., curr)| total + *curr as f64);
+        let total_letters: f64 = letter_distribution
+            .iter()
+            .fold(0.0, |total: f64, (.., curr)| total + *curr as f64);
         for (tile, frequency) in letter_distribution.clone() {
             output.extend_from_slice(&vec![
                 tile;
@@ -141,8 +152,11 @@ impl Distribution {
 
     pub fn create_pile(&self, amount: usize) -> Vec<char> {
         match self {
-            Self::Dictionary(letter_distribution) => Self::create_pile_internals(letter_distribution, amount),
-            Self::Bananagrams => todo!(),
+            Self::Dictionary(letter_distribution) => {
+                Self::create_pile_internals(letter_distribution, amount)
+            }
+            Self::Bananagrams =>                 Self::create_pile_internals(&Self::BANANAGRAMS, amount)
+            ,
             Self::Scrabble => todo!(),
         }
     }
