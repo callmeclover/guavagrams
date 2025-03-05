@@ -1,9 +1,8 @@
 use std::ops::AddAssign;
 
-use crossterm::style::Stylize;
 use ratatui::{
     style::{Color, Style, Styled},
-    text::{Line, Span, ToSpan},
+    text::Line,
     widgets::{Paragraph, Widget},
 };
 
@@ -17,13 +16,19 @@ pub struct Camera {
 impl Camera {
     pub fn new(grid: SharedGrid) -> Self {
         Self {
-            grid: grid,
+            grid,
             cursor: Coordinate::default(),
         }
     }
 
     pub fn put(&self, letter: char) {
         self.grid.lock().unwrap()[self.cursor] = Some(letter);
+    }
+    
+    pub fn pick_up(&self) -> Option<char> {
+        let tile: Option<char> = self.grid.lock().unwrap()[self.cursor];
+        self.grid.lock().unwrap()[self.cursor] = None;
+        tile
     }
 }
 
@@ -33,6 +38,7 @@ impl AddAssign<Coordinate> for Camera {
     }
 }
 
+#[allow(clippy::cast_possible_truncation)]
 impl Widget for &Camera {
     fn render(self, area: ratatui::prelude::Rect, buf: &mut ratatui::prelude::Buffer)
     where

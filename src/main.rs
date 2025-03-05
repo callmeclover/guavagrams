@@ -1,3 +1,5 @@
+#![feature(let_chains)]
+
 mod camera;
 mod dictionary;
 mod grid;
@@ -11,7 +13,7 @@ use std::{
 
 use camera::Camera;
 use color_eyre::Result;
-use crossterm::event::{self, Event, KeyCode};
+use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use dictionary::{get_dictionary, list_dictionaries, Distribution};
 use grid::{Coordinate, Grid, SharedGrid};
 use ratatui::{layout::Rect, text::Line, Frame};
@@ -30,21 +32,18 @@ fn main() -> Result<()> {
         terminal
             .draw(|frame: &mut Frame| {
                 frame.render_widget(&camera, Rect::new(0, 0, 35, 15));
-                frame.render_widget(Line::raw(format!("{}", camera.cursor)), frame.area());
             })
             .expect("failed to draw frame");
-        match event::read().expect("failed to read event") {
-            Event::Key(event) => match event.code {
-                KeyCode::Char('q') => break,
-                KeyCode::Right => camera += Coordinate(1, 0),
-                KeyCode::Left => camera += Coordinate(-1, 0),
-                KeyCode::Up => camera += Coordinate(0, 1),
-                KeyCode::Down => camera += Coordinate(0, -1),
-                KeyCode::Char(' ') => camera.put('a'),
-                _ => (),
-            },
+        if let Event::Key(event) = event::read().expect("failed to read event") && event.kind == KeyEventKind::Press { match event.code {
+            KeyCode::Esc => break,
+            KeyCode::Right => camera += Coordinate(1, 0),
+            KeyCode::Left => camera += Coordinate(-1, 0),
+            KeyCode::Up => camera += Coordinate(0, 1),
+            KeyCode::Down => camera += Coordinate(0, -1),
+            KeyCode::Char(letter) => camera.put(letter),
+            KeyCode::Backspace => if let Some(tile) = camera.pick_up() {  },
             _ => (),
-        }
+        } }
     }
     ratatui::restore();
 

@@ -160,11 +160,11 @@ impl Distribution {
         }
     }
 
-    pub fn pull_from_pile(pile: &mut [char], amount: usize) -> Result<Vec<&char>, Error> {
+    pub fn pull_from_pile(pile: &mut Vec<char>, amount: usize) -> Result<Vec<char>, Error> {
         if pile.len() < amount {
             return Err(Error::NoMoreTiles);
         }
-        Ok(pile.iter().take(amount).collect())
+        Ok(pile.drain(..amount).collect())
     }
 
     pub fn pull_endless(&self) -> char {

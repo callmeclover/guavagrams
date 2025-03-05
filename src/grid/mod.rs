@@ -158,6 +158,12 @@ impl Grid {
     }
 }
 
+impl Default for Grid {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// A 2D, fixed size array of booleans on the heap.
 #[derive(Debug)]
 pub struct BoolGrid(Box<[[bool; GRID_HEIGHT as usize]; GRID_WIDTH as usize]>);
