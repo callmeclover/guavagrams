@@ -1,12 +1,12 @@
 use std::{
     fmt::Display,
-    ops::{Add, Index, IndexMut, Sub},
+    ops::{Add, AddAssign, Index, IndexMut, Sub},
 };
 
 use super::{BoolGrid, Grid};
 
 /// A coordinate on a 2D grid.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct Coordinate(pub i8, pub i8);
 
 impl Add for Coordinate {
@@ -15,6 +15,12 @@ impl Add for Coordinate {
     fn add(self, rhs: Self) -> Self::Output {
         // We use `saturating_add` to clip the grid. (127 + 1 = 127)
         Self(self.0.saturating_add(rhs.0), self.1.saturating_add(rhs.1))
+    }
+}
+
+impl AddAssign for Coordinate {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = *self + rhs;
     }
 }
 

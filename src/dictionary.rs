@@ -8,14 +8,14 @@ use csv::{Reader, StringRecord};
 use rand::{distr::Distribution as _, rngs::ThreadRng};
 use walkdir::{DirEntry, WalkDir};
 
-use crate::util::create_weights;
+use crate::{util::create_weights, Error};
 
 /// Recursively lists every file in `./dictionaries/`.
 pub fn list_dictionaries() -> Vec<PathBuf> {
     WalkDir::new("dictionaries")
         .into_iter()
         .filter_map(|entry: Result<DirEntry, walkdir::Error>| {
-            entry.ok().and_then(|x| {
+            entry.ok().and_then(|x: DirEntry| {
                 if x.file_type().is_file() {
                     return Some(x);
                 };
@@ -155,14 +155,16 @@ impl Distribution {
             Self::Dictionary(letter_distribution) => {
                 Self::create_pile_internals(letter_distribution, amount)
             }
-            Self::Bananagrams =>                 Self::create_pile_internals(&Self::BANANAGRAMS, amount)
-            ,
+            Self::Bananagrams => Self::create_pile_internals(&Self::BANANAGRAMS, amount),
             Self::Scrabble => todo!(),
         }
     }
 
-    pub fn pull_from_pile(pile: &mut Vec<char>) -> char {
-        todo!()
+    pub fn pull_from_pile(pile: &mut [char], amount: usize) -> Result<Vec<&char>, Error> {
+        if pile.len() < amount {
+            return Err(Error::NoMoreTiles);
+        }
+        Ok(pile.iter().take(amount).collect())
     }
 
     pub fn pull_endless(&self) -> char {

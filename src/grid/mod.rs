@@ -1,6 +1,9 @@
 pub mod index;
 
-use std::collections::HashSet;
+use std::{
+    collections::HashSet,
+    sync::{Arc, Mutex},
+};
 
 pub use index::{Coordinate, GridIndex};
 
@@ -165,6 +168,8 @@ impl BoolGrid {
         Self(box_array![[false; GRID_HEIGHT as usize]; GRID_WIDTH as usize])
     }
 }
+
+pub type SharedGrid = Arc<Mutex<Grid>>;
 
 #[derive(Debug, PartialEq, Eq)]
 enum Direction {
