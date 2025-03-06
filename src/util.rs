@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use rand::distr::weighted::WeightedIndex;
 
 use crate::dictionary::LetterDistribution;
@@ -27,4 +29,13 @@ macro_rules! box_array {
 /// Creates a weighted index from a list of entries and weights.
 pub fn create_weights(list: &LetterDistribution) -> WeightedIndex<usize> {
     WeightedIndex::new(list.iter().map(|item: &(char, usize)| item.1)).unwrap()
+}
+
+pub fn format_duration(duration: Duration) -> String {
+    let secs: u64 = duration.as_secs();
+    let hours: u64 = secs / 3600;
+    let minutes: u64 = (secs % 3600) / 60;
+    let seconds: u64 = secs % 60;
+
+    format!("{hours:02}:{minutes:02}:{seconds:02}")
 }
