@@ -5,7 +5,7 @@ use std::{
 };
 
 use csv::{Reader, StringRecord};
-use rand::{distr::Distribution as _, rngs::ThreadRng};
+use rand::{distr::Distribution as _, rngs::ThreadRng, seq::SliceRandom};
 use walkdir::{DirEntry, WalkDir};
 
 use crate::{util::create_weights, Error};
@@ -39,7 +39,8 @@ pub fn get_dictionary(path: &Path) -> csv::Result<HashSet<String>> {
 
 pub type LetterDistribution = Vec<(char, usize)>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub enum Distribution {
     /// The distributed rarity of tiles from a dictionary.
     Dictionary(LetterDistribution),
@@ -48,65 +49,6 @@ pub enum Distribution {
 }
 
 impl Distribution {
-    /*const SCRABBLE: LetterDistribution = vec![
-        ('a'),
-        ('b'),
-        ('c'),
-        ('d'),
-        ('e'),
-        ('f'),
-        ('g'),
-        ('h'),
-        ('i'),
-        ('j'),
-        ('k'),
-        ('l'),
-        ('m'),
-        ('n'),
-        ('o'),
-        ('p'),
-        ('q'),
-        ('r'),
-        ('s'),
-        ('t'),
-        ('u'),
-        ('v'),
-        ('w'),
-        ('x'),
-        ('y'),
-        ('z'),
-    ];*/
-    const BANANAGRAMS: LazyLock<LetterDistribution> = LazyLock::new(|| {
-        vec![
-            ('a', 13),
-            ('b', 3),
-            ('c', 3),
-            ('d', 6),
-            ('e', 18),
-            ('f', 3),
-            ('g', 4),
-            ('h', 3),
-            ('i', 12),
-            ('j', 2),
-            ('k', 2),
-            ('l', 5),
-            ('m', 3),
-            ('n', 8),
-            ('o', 11),
-            ('p', 3),
-            ('q', 2),
-            ('r', 9),
-            ('s', 6),
-            ('t', 9),
-            ('u', 6),
-            ('v', 3),
-            ('w', 3),
-            ('x', 2),
-            ('y', 3),
-            ('z', 2),
-        ]
-    });
-
     /// Creates a `Distribution::Dictionary` from a `HashSet`.
     pub fn from_dictionary(dictionary: &HashSet<String>) -> Self {
         let mut characters: Vec<char> = Vec::new();
@@ -147,6 +89,7 @@ impl Distribution {
                     as usize
             ]);
         }
+        output.shuffle(&mut ThreadRng::default());
         output
     }
 
@@ -155,7 +98,7 @@ impl Distribution {
             Self::Dictionary(letter_distribution) => {
                 Self::create_pile_internals(letter_distribution, amount)
             }
-            Self::Bananagrams => Self::create_pile_internals(&Self::BANANAGRAMS, amount),
+            Self::Bananagrams => Self::create_pile_internals(&BANANAGRAMS, amount),
             Self::Scrabble => todo!(),
         }
     }
@@ -173,9 +116,7 @@ impl Distribution {
             Self::Dictionary(letter_distribution) => {
                 letter_distribution[create_weights(letter_distribution).sample(&mut rng)].0
             }
-            Self::Bananagrams => {
-                Self::BANANAGRAMS[create_weights(&Self::BANANAGRAMS).sample(&mut rng)].0
-            }
+            Self::Bananagrams => BANANAGRAMS[create_weights(&BANANAGRAMS).sample(&mut rng)].0,
             Self::Scrabble => todo!(),
         }
     }
@@ -187,3 +128,62 @@ impl Distribution {
         }
     }
 }
+
+/*const SCRABBLE: LetterDistribution = vec![
+    ('a'),
+    ('b'),
+    ('c'),
+    ('d'),
+    ('e'),
+    ('f'),
+    ('g'),
+    ('h'),
+    ('i'),
+    ('j'),
+    ('k'),
+    ('l'),
+    ('m'),
+    ('n'),
+    ('o'),
+    ('p'),
+    ('q'),
+    ('r'),
+    ('s'),
+    ('t'),
+    ('u'),
+    ('v'),
+    ('w'),
+    ('x'),
+    ('y'),
+    ('z'),
+];*/
+static BANANAGRAMS: LazyLock<LetterDistribution> = LazyLock::new(|| {
+    vec![
+        ('a', 13),
+        ('b', 3),
+        ('c', 3),
+        ('d', 6),
+        ('e', 18),
+        ('f', 3),
+        ('g', 4),
+        ('h', 3),
+        ('i', 12),
+        ('j', 2),
+        ('k', 2),
+        ('l', 5),
+        ('m', 3),
+        ('n', 8),
+        ('o', 11),
+        ('p', 3),
+        ('q', 2),
+        ('r', 9),
+        ('s', 6),
+        ('t', 9),
+        ('u', 6),
+        ('v', 3),
+        ('w', 3),
+        ('x', 2),
+        ('y', 3),
+        ('z', 2),
+    ]
+});

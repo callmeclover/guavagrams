@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{collections::HashMap, time::Duration};
 
 use rand::distr::weighted::WeightedIndex;
 
@@ -38,4 +38,26 @@ pub fn format_duration(duration: Duration) -> String {
     let seconds: u64 = secs % 60;
 
     format!("{hours:02}:{minutes:02}:{seconds:02}")
+}
+
+pub fn format_tile_list(hand: &[char]) -> String {
+    let mut output: String = String::new();
+
+    let mut count = HashMap::new();
+    for tile in hand {
+        if let Some(entry) = count.get_mut(&tile) {
+            *entry += 1;
+        } else {
+            count.insert(tile, 1);
+        }
+    }
+
+    let mut count = count.iter().collect::<Vec<_>>();
+    count.sort_by(|(a, ..), (b, ..)| a.cmp(b));
+
+    for (entry, amount) in count {
+        output.push_str(&format!("'{entry}' ({amount}), "));
+    }
+
+    output
 }
