@@ -1,5 +1,3 @@
-#![feature(let_chains)]
-
 mod camera;
 mod dictionary;
 mod grid;
@@ -27,6 +25,8 @@ fn main() -> Result<()> {
     let grid: SharedGrid = Arc::new(Mutex::new(Grid::new()));
     let mut camera: Camera = Camera::new(grid);
 
+    let mut hand: Vec<char> = Vec::new();
+
     let mut terminal = ratatui::init();
     loop {
         terminal
@@ -34,16 +34,24 @@ fn main() -> Result<()> {
                 frame.render_widget(&camera, Rect::new(0, 0, 35, 15));
             })
             .expect("failed to draw frame");
-        if let Event::Key(event) = event::read().expect("failed to read event") && event.kind == KeyEventKind::Press { match event.code {
-            KeyCode::Esc => break,
-            KeyCode::Right => camera += Coordinate(1, 0),
-            KeyCode::Left => camera += Coordinate(-1, 0),
-            KeyCode::Up => camera += Coordinate(0, 1),
-            KeyCode::Down => camera += Coordinate(0, -1),
-            KeyCode::Char(letter) => camera.put(letter),
-            KeyCode::Backspace => if let Some(tile) = camera.pick_up() {  },
-            _ => (),
-        } }
+        if let Event::Key(event) = event::read().expect("failed to read event") {
+            if event.kind == KeyEventKind::Press {
+                match event.code {
+                    KeyCode::Esc => break,
+                    KeyCode::Right => camera += Coordinate(1, 0),
+                    KeyCode::Left => camera += Coordinate(-1, 0),
+                    KeyCode::Up => camera += Coordinate(0, 1),
+                    KeyCode::Down => camera += Coordinate(0, -1),
+                    KeyCode::Char(letter) if distribution.contains_letter(letter) => camera.put(letter),
+                    KeyCode::Backspace => {
+                        if let Some(tile) = camera.pick_up() {
+                            hand.push(tile);
+                        }
+                    }
+                    _ => (),
+                }
+            }
+        }
     }
     ratatui::restore();
 

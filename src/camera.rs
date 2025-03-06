@@ -22,9 +22,9 @@ impl Camera {
     }
 
     pub fn put(&self, letter: char) {
-        self.grid.lock().unwrap()[self.cursor] = Some(letter);
+        self.grid.lock().unwrap()[self.cursor].get_or_insert(letter);
     }
-    
+
     pub fn pick_up(&self) -> Option<char> {
         let tile: Option<char> = self.grid.lock().unwrap()[self.cursor];
         self.grid.lock().unwrap()[self.cursor] = None;

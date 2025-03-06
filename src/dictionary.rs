@@ -173,8 +173,16 @@ impl Distribution {
             Self::Dictionary(letter_distribution) => {
                 letter_distribution[create_weights(letter_distribution).sample(&mut rng)].0
             }
-            Self::Bananagrams => todo!(),
+            Self::Bananagrams => Self::BANANAGRAMS[create_weights(&Self::BANANAGRAMS).sample(&mut rng)].0,
             Self::Scrabble => todo!(),
+        }
+    }
+
+    pub fn contains_letter(&self, letter: char) -> bool {
+        match self {
+            Distribution::Dictionary(items) => items.iter().find(|x| x.0 == letter).is_some(),
+            Distribution::Bananagrams => letter.is_alphabetic(),
+            Distribution::Scrabble => letter.is_alphabetic(),
         }
     }
 }
