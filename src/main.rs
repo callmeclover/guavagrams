@@ -3,7 +3,6 @@ mod dictionary;
 mod grid;
 mod util;
 
-use core::panic;
 use std::{
     collections::HashSet,
     path::PathBuf,
@@ -41,6 +40,7 @@ struct GameState {
 fn main() -> Result<()> {
     color_eyre::install()?;
 
+
     let dictionary_list: Vec<PathBuf> = list_dictionaries();
     let dictionary: HashSet<String> = get_dictionary(&dictionary_list[0])?;
 
@@ -72,7 +72,7 @@ fn main() -> Result<()> {
                     .split(Rect::new(
                         0,
                         0,
-                        (f64::from(frame.area().width) / 1.5) as u16,
+                        frame.area().width,
                         frame.area().height,
                     ));
 
@@ -130,13 +130,13 @@ fn main() -> Result<()> {
                 Ok(response) => match response {
                     EventResponse::Quit => break,
                     EventResponse::ResetStatus => {
-                        status = String::new().set_style(Style::default())
+                        status = String::new().set_style(Style::default());
                     }
                     EventResponse::ChangeStatus(new_status) => status = new_status,
                     EventResponse::Pass => continue,
                 },
                 Err(exception) => {
-                    status = exception.to_string().set_style(Style::new().fg(Color::Red))
+                    status = exception.to_string().set_style(Style::new().fg(Color::Red));
                 }
             }
         }
