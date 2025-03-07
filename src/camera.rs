@@ -1,7 +1,4 @@
-use std::{
-    ops::{AddAssign, Index},
-    u8,
-};
+use std::ops::AddAssign;
 
 use ratatui::{
     layout::Rect,

@@ -3,7 +3,6 @@ mod dictionary;
 mod grid;
 mod util;
 
-use core::panic;
 use std::{
     collections::HashSet,
     path::PathBuf,
@@ -17,6 +16,7 @@ use color_eyre::Result;
 use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
 use dictionary::{get_dictionary, list_dictionaries, Distribution};
 use grid::{Coordinate, Grid, SharedGrid};
+use itertools::Itertools;
 use rand::{rngs::ThreadRng, seq::SliceRandom};
 use ratatui::{
     layout::Rect,
@@ -108,13 +108,33 @@ fn main() -> Result<()> {
                     .title_alignment(Alignment::Center);
 
                 frame.render_widget(&block, layout[0]);
-                frame.render_widget(
-                    Paragraph::new(vec![
-                        Line::raw(format!("Coordinates: {}", state.camera.cursor)),
-                        Line::raw(format!("Tiles left in pile: {}", state.tileset.0.len())),
-                    ]),
-                    block_layout[0],
+
+                let keys = [
+                    ("↑/↓/←/→", "Move"),
+                    ("Any Letter", "Place"),
+                    ("Del", "Pick Up"),
+                    ("Ctrl + Any Letter", "Trade In"),
+                    ("Shift + G", "Peel/Guavagrams!"),
+                    ("Shift + Q/Esc", "Quit"),
+                ];
+                let mut lines = vec![
+                    Line::raw(format!("Coordinates: {}", state.camera.cursor)),
+                    Line::raw(format!("Tiles left in pile: {}", state.tileset.0.len())),
+                    Line::default(),
+                ];
+
+                lines.append(
+                    &mut keys
+                        .iter()
+                        .map(|(key, desc)| {
+                            let key: Span = Span::styled(format!(" {key} "), Style::new().cyan());
+                            let desc: Span = Span::styled(format!(" {desc} "), Style::default());
+                            Line::from(vec![key, desc])
+                        })
+                        .collect_vec(),
                 );
+
+                frame.render_widget(Paragraph::new(lines), block_layout[0]);
                 frame.render_widget(&tiles_block, block_layout[1]);
                 frame.render_widget(
                     Paragraph::new(Text::from(format_tile_list(&state.tileset.1)))
@@ -129,14 +149,11 @@ fn main() -> Result<()> {
             match event_handler(&mut state) {
                 Ok(response) => match response {
                     EventResponse::Quit => break,
-                    EventResponse::ResetStatus => {
-                        status = String::new().set_style(Style::default())
-                    }
                     EventResponse::ChangeStatus(new_status) => status = new_status,
                     EventResponse::Pass => continue,
                 },
                 Err(exception) => {
-                    status = exception.to_string().set_style(Style::new().fg(Color::Red))
+                    status = exception.to_string().set_style(Style::new().fg(Color::Red));
                 }
             }
         }
@@ -149,14 +166,11 @@ fn main() -> Result<()> {
 #[derive(PartialEq, Eq, Clone)]
 enum EventResponse {
     Pass,
-    ResetStatus,
     ChangeStatus(Span<'static>),
     Quit,
 }
 
 /// The event logic.
-/// This returning an error is not inherently bad.
-/// This just means that it returned a message.
 fn event_handler(state: &mut GameState) -> Result<EventResponse, Error> {
     if let Event::Key(event) = event::read().expect("failed to read event") {
         if event.kind == KeyEventKind::Press {
@@ -186,15 +200,14 @@ fn event_handler(state: &mut GameState) -> Result<EventResponse, Error> {
                         return Ok(EventResponse::ChangeStatus(
                             "Guavagrams!".set_style(Style::new().fg(Color::Green)),
                         ));
-                    } else {
-                        state
-                            .tileset
-                            .1
-                            .append(&mut Distribution::pull_from_pile(&mut state.tileset.0, 1)?);
-                        return Ok(EventResponse::ChangeStatus(
-                            "Peel!".set_style(Style::new().fg(Color::Green)),
-                        ));
                     }
+                    state
+                        .tileset
+                        .1
+                        .append(&mut Distribution::pull_from_pile(&mut state.tileset.0, 1)?);
+                    return Ok(EventResponse::ChangeStatus(
+                        "Peel!".set_style(Style::new().fg(Color::Green)),
+                    ));
                 }
                 KeyCode::Char(letter)
                     if event.modifiers.contains(KeyModifiers::CONTROL)
