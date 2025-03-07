@@ -20,6 +20,7 @@ const GRID_HEIGHT: usize = u8::MAX as usize + 1;
 #[derive(Debug)]
 pub struct Grid(Box<[[Option<char>; GRID_HEIGHT]; GRID_WIDTH]>);
 
+#[allow(clippy::cast_possible_truncation)]
 impl Grid {
     /// Constructs a `Grid`.
     pub fn new() -> Self {
@@ -168,12 +169,12 @@ impl Default for Grid {
 
 /// A 2D, fixed size array of booleans on the heap.
 #[derive(Debug)]
-pub struct BoolGrid(Box<[[bool; GRID_HEIGHT as usize]; GRID_WIDTH as usize]>);
+pub struct BoolGrid(Box<[[bool; GRID_HEIGHT]; GRID_WIDTH]>);
 
 impl BoolGrid {
     /// Constructs a `BoolGrid`.
     pub fn new() -> Self {
-        Self(box_array![[false; GRID_HEIGHT as usize]; GRID_WIDTH as usize])
+        Self(box_array![[false; GRID_HEIGHT]; GRID_WIDTH])
     }
 }
 
