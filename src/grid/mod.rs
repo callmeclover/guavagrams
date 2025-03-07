@@ -10,18 +10,20 @@ pub use index::{Coordinate, GridIndex};
 use crate::{box_array, Error};
 
 /// The amount of columns in a grid.
-const GRID_WIDTH: u8 = u8::MAX;
+/// The default is 256.
+const GRID_WIDTH: usize = u8::MAX as usize + 1;
 /// The amount of rows in the grid.
-const GRID_HEIGHT: u8 = u8::MAX;
+/// The default is 256.
+const GRID_HEIGHT: usize = u8::MAX as usize + 1;
 
 /// A 2D, fixed size array on the heap.
 #[derive(Debug)]
-pub struct Grid(Box<[[Option<char>; GRID_HEIGHT as usize]; GRID_WIDTH as usize]>);
+pub struct Grid(Box<[[Option<char>; GRID_HEIGHT]; GRID_WIDTH]>);
 
 impl Grid {
     /// Constructs a `Grid`.
     pub fn new() -> Self {
-        Self(box_array![[None; GRID_HEIGHT as usize]; GRID_WIDTH as usize])
+        Self(box_array![[None; GRID_HEIGHT]; GRID_WIDTH])
     }
 
     /// Scans a `Grid` for words.
@@ -32,8 +34,8 @@ impl Grid {
         // Scan horizontally.
         for y in 0..GRID_WIDTH {
             for x in 0..GRID_HEIGHT {
-                if let Some(letter) = self[GridIndex(x, y)] {
-                    let direction: Direction = self.letter_adjacent(GridIndex(x, y).into());
+                if let Some(letter) = self[GridIndex(x as u8, y as u8)] {
+                    let direction: Direction = self.letter_adjacent(GridIndex(x as u8, y as u8).into());
                     if !(direction == Direction::Vertical) {
                         current_word.push(letter);
                     }
@@ -52,8 +54,8 @@ impl Grid {
         // Scan vertically.
         for x in 0..GRID_HEIGHT {
             for y in 0..GRID_WIDTH {
-                if let Some(letter) = self[GridIndex(x, y)] {
-                    if !(self.letter_adjacent(GridIndex(x, y).into()) == Direction::Horizontal) {
+                if let Some(letter) = self[GridIndex(x as u8, y as u8)] {
+                    if !(self.letter_adjacent(GridIndex(x as u8, y as u8).into()) == Direction::Horizontal) {
                         current_word.push(letter);
                     }
                 } else if current_word.chars().count() == 1 {
@@ -130,8 +132,8 @@ impl Grid {
         let mut start: Option<GridIndex> = None;
         for x in 0..GRID_HEIGHT {
             for y in 0..GRID_WIDTH {
-                if self[GridIndex(x, y)].is_some() {
-                    start = Some(GridIndex(x, y));
+                if self[GridIndex(x as u8, y as u8)].is_some() {
+                    start = Some(GridIndex(x as u8, y as u8));
                     break;
                 }
             }
@@ -147,7 +149,7 @@ impl Grid {
             // Check if all occupied cells are visited.
             for x in 0..GRID_HEIGHT {
                 for y in 0..GRID_WIDTH {
-                    if self[GridIndex(x, y)].is_some() && !visited[GridIndex(x, y)] {
+                    if self[GridIndex(x as u8, y as u8)].is_some() && !visited[GridIndex(x as u8, y as u8)] {
                         // Found an unconnected cell!
                         return Err(Error::WordsNotConnected);
                     }

@@ -57,17 +57,17 @@ impl Widget for &mut Camera {
             let mut output: Vec<Line> = Vec::new();
             let cursor_index: GridIndex = self.cursor.into();
             let clamped_y = cursor_index.1.clamp(
-                u8::MIN.wrapping_sub(1) + area.height as u8 / 2,
-                u8::MAX.wrapping_sub(1) - area.height as u8 / 2,
+                u8::MIN.saturating_add(area.height as u8 / 2),
+                u8::MAX.saturating_sub(area.height as u8 / 2),
             );
             let clamped_x = cursor_index.0.clamp(
-                u8::MIN.wrapping_add(1) + area.width as u8 / 4,
-                u8::MAX.wrapping_add(1) - area.width as u8 / 4,
+                u8::MIN.saturating_add(area.width as u8 / 4),
+                u8::MAX.saturating_sub(area.width as u8 / 4),
             );
 
-            for y in (clamped_y - (area.height / 2) as u8)..(clamped_y + (area.height / 2) as u8) {
+            for y in (clamped_y - (area.height / 2) as u8)..=(clamped_y + (area.height / 2) as u8) {
                 let mut line: Line = Line::default();
-                for x in (clamped_x - (area.width / 4) as u8)..(clamped_x + (area.width / 4) as u8)
+                for x in clamped_x.saturating_sub((area.width / 4) as u8)..=clamped_x.saturating_add((area.width / 4) as u8)
                 {
                     let span = if GridIndex(x, y) == cursor_index {
                         self.grid.lock().unwrap()[GridIndex(x, y)]

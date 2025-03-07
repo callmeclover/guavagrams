@@ -41,7 +41,6 @@ struct GameState {
 fn main() -> Result<()> {
     color_eyre::install()?;
 
-
     let dictionary_list: Vec<PathBuf> = list_dictionaries();
     let dictionary: HashSet<String> = get_dictionary(&dictionary_list[0])?;
 
@@ -70,12 +69,7 @@ fn main() -> Result<()> {
                     .direction(Direction::Horizontal)
                     .constraints(vec![Constraint::Percentage(50), Constraint::Percentage(50)])
                     .spacing(1)
-                    .split(Rect::new(
-                        0,
-                        0,
-                        frame.area().width,
-                        frame.area().height,
-                    ));
+                    .split(frame.area());
 
                 let block: Block = Block::default()
                     .borders(Borders::ALL)
@@ -95,12 +89,7 @@ fn main() -> Result<()> {
                     .direction(Direction::Vertical)
                     .constraints(vec![Constraint::Percentage(50), Constraint::Percentage(50)])
                     .spacing(1)
-                    .split(Rect::new(
-                        block.inner(layout[0]).x,
-                        block.inner(layout[0]).y,
-                        block.inner(layout[0]).width,
-                        block.inner(layout[0]).height,
-                    ));
+                    .split(block.inner(layout[0]));
 
                 let tiles_block: Block = Block::default()
                     .border_type(BorderType::Plain)
