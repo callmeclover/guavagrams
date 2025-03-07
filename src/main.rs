@@ -41,6 +41,7 @@ struct GameState {
 fn main() -> Result<()> {
     color_eyre::install()?;
 
+
     let dictionary_list: Vec<PathBuf> = list_dictionaries();
     let dictionary: HashSet<String> = get_dictionary(&dictionary_list[0])?;
 
@@ -72,7 +73,7 @@ fn main() -> Result<()> {
                     .split(Rect::new(
                         0,
                         0,
-                        (f64::from(frame.area().width) / 1.5) as u16,
+                        frame.area().width,
                         frame.area().height,
                     ));
 

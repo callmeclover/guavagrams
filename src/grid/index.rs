@@ -94,9 +94,24 @@ pub struct GridIndex(pub u8, pub u8);
 impl From<Coordinate> for GridIndex {
     fn from(value: Coordinate) -> Self {
         Self(
-            (-128_i8).wrapping_add(value.0) as u8,
-            (126_i8).wrapping_sub(value.1) as u8,
+            127_i8.wrapping_add(value.0) as u8,
+            127_i8.wrapping_sub(value.1) as u8,
         )
+    }
+}
+
+impl Add for GridIndex {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self::Output {
+        Self(self.0.saturating_add(rhs.0), self.1.saturating_add(rhs.1))
+
+    }
+}
+
+impl Sub for GridIndex {
+    type Output = Self;
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self(self.0.saturating_sub(rhs.0), self.1.saturating_sub(rhs.1))
     }
 }
 
