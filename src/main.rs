@@ -215,8 +215,13 @@ fn event_handler(state: &mut GameState) -> Result<EventResponse, Error> {
                     }
 
                     let handle = state.camera.grid.lock().unwrap();
-                    handle.validate_connectivity()?;
-                    Grid::validate_words(&handle.scan_for_words(), &state.dictionary)?;
+                    if let Err(exception) = 
+                    handle.validate_connectivity().and_then(|_| Grid::validate_words(&handle.scan_for_words(), &state.dictionary))
+                    {
+                        state.score -= 5;
+                        return Err(exception);
+                    }
+
                     drop(handle);
 
                     if state.tileset.0.is_empty() {
