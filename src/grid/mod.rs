@@ -36,8 +36,9 @@ impl Grid {
         for y in 0..GRID_WIDTH {
             for x in 0..GRID_HEIGHT {
                 if let Some(letter) = self[GridIndex(x as u8, y as u8)] {
-                    let direction: Direction = self.letter_adjacent(GridIndex(x as u8, y as u8).into());
-                    if !(direction == Direction::Vertical) {
+                    let direction: Direction =
+                        self.letter_adjacent(GridIndex(x as u8, y as u8).into());
+                    if direction != Direction::Vertical {
                         current_word.push(letter);
                     }
                 } else if !current_word.is_empty() {
@@ -56,7 +57,8 @@ impl Grid {
         for x in 0..GRID_HEIGHT {
             for y in 0..GRID_WIDTH {
                 if let Some(letter) = self[GridIndex(x as u8, y as u8)] {
-                    if !(self.letter_adjacent(GridIndex(x as u8, y as u8).into()) == Direction::Horizontal) {
+                    let direction = self.letter_adjacent(GridIndex(x as u8, y as u8).into());
+                    if direction != Direction::Horizontal {
                         current_word.push(letter);
                     }
                 } else if current_word.chars().count() == 1 {
@@ -78,10 +80,26 @@ impl Grid {
     /// Checks if there's a letter adjacent to this coordinate.
     /// Returns the direction the letter was found in.
     fn letter_adjacent(&self, coordinate: Coordinate) -> Direction {
-        let horizontal: bool = self[coordinate + Coordinate(1, 0)].is_some()
-            || self[coordinate - Coordinate(1, 0)].is_some();
-        let vertical: bool = self[coordinate + Coordinate(0, 1)].is_some()
-            || self[coordinate - Coordinate(0, 1)].is_some();
+        let horizontal: bool =
+            if let (x, false) = coordinate.overflowing_add(Coordinate(1, 0)) {
+                self[x].is_some()
+            } else {
+                false
+            } || if let (x, false) = coordinate.overflowing_add(Coordinate(-1, 0)) {
+                self[x].is_some()
+            } else {
+                false
+            };
+        let vertical: bool = if let (x, false) = coordinate.overflowing_add(Coordinate(0, 1)) {
+            self[x].is_some()
+        } else {
+            false
+        } || if let (x, false) = coordinate.overflowing_add(Coordinate(0, -1))
+        {
+            self[x].is_some()
+        } else {
+            false
+        };
 
         if horizontal && vertical {
             return Direction::Both;
@@ -148,9 +166,11 @@ impl Grid {
             self.dfs(&mut visited, index.into());
 
             // Check if all occupied cells are visited.
-            for x in 0..GRID_HEIGHT {
-                for y in 0..GRID_WIDTH {
-                    if self[GridIndex(x as u8, y as u8)].is_some() && !visited[GridIndex(x as u8, y as u8)] {
+            for y in 0..GRID_HEIGHT {
+                for x in 0..GRID_WIDTH {
+                    if self[GridIndex(x as u8, y as u8)].is_some()
+                        && !visited[GridIndex(x as u8, y as u8)]
+                    {
                         // Found an unconnected cell!
                         return Err(Error::WordsNotConnected);
                     }

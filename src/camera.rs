@@ -67,7 +67,8 @@ impl Widget for &mut Camera {
 
             for y in (clamped_y - (area.height / 2) as u8)..=(clamped_y + (area.height / 2) as u8) {
                 let mut line: Line = Line::default();
-                for x in clamped_x.saturating_sub((area.width / 4) as u8)..=clamped_x.saturating_add((area.width / 4) as u8)
+                for x in clamped_x.saturating_sub((area.width / 4) as u8)
+                    ..=clamped_x.saturating_add((area.width / 4) as u8)
                 {
                     let span = if GridIndex(x, y) == cursor_index {
                         self.grid.lock().unwrap()[GridIndex(x, y)]

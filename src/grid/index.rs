@@ -33,7 +33,10 @@ impl Display for Coordinate {
 #[allow(clippy::cast_possible_wrap)]
 impl From<GridIndex> for Coordinate {
     fn from(value: GridIndex) -> Self {
-        Self((-128_i8).wrapping_add_unsigned(value.0), (-128_i8).wrapping_add_unsigned(value.1))
+        Self(
+            (-128_i8).wrapping_add_unsigned(value.0),
+            (-128_i8).wrapping_sub_unsigned(value.1),
+        )
     }
 }
 
@@ -95,7 +98,7 @@ impl From<Coordinate> for GridIndex {
     fn from(value: Coordinate) -> Self {
         Self(
             128_u8.wrapping_add_signed(value.0),
-            128_u8.wrapping_add_signed(-value.1),
+            128_u8.wrapping_sub_signed(value.1),
         )
     }
 }
@@ -104,7 +107,6 @@ impl Add for GridIndex {
     type Output = Self;
     fn add(self, rhs: Self) -> Self::Output {
         Self(self.0.saturating_add(rhs.0), self.1.saturating_add(rhs.1))
-
     }
 }
 
