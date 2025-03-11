@@ -6,7 +6,7 @@ mod grid;
 mod util;
 
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     path::PathBuf,
     rc::Rc,
     sync::{Arc, Mutex},
@@ -37,6 +37,8 @@ struct GameState {
     tileset: (Vec<char>, Vec<char>),
     game_start: Instant,
     game_end: Option<Instant>,
+    score: i64,
+    scoretable: HashMap<char, i64>,
 }
 
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
@@ -59,6 +61,35 @@ fn main() -> Result<()> {
         },
         game_start: Instant::now(),
         game_end: None,
+        score: 0,
+        scoretable: HashMap::from([
+            ('a', 1),
+            ('b', 3),
+            ('c', 3),
+            ('d', 2),
+            ('e', 1),
+            ('f', 4),
+            ('g', 2),
+            ('h', 4),
+            ('i', 1),
+            ('j', 8),
+            ('k', 5),
+            ('l', 1),
+            ('m', 3),
+            ('n', 1),
+            ('o', 1),
+            ('p', 3),
+            ('q', 10),
+            ('r', 1),
+            ('s', 1),
+            ('t', 1),
+            ('u', 1),
+            ('v', 4),
+            ('w', 4),
+            ('x', 8),
+            ('y', 4),
+            ('z', 10),
+        ]),
     };
 
     let mut status: Span = "".set_style(Style::new().fg(Color::Black).bg(Color::White));
@@ -112,6 +143,7 @@ fn main() -> Result<()> {
                 let mut lines = vec![
                     Line::raw(format!("Coordinates: {}", state.camera.cursor)),
                     Line::raw(format!("Tiles left in pile: {}", state.tileset.0.len())),
+                    Line::raw(format!("Score: {}", state.score)),
                     Line::default(),
                 ];
 
@@ -142,7 +174,7 @@ fn main() -> Result<()> {
                 Ok(response) => match response {
                     EventResponse::Quit => break,
                     EventResponse::ChangeStatus(new_status) => status = new_status,
-                    EventResponse::Pass => continue,
+                    EventResponse::Pass => (),
                 },
                 Err(exception) => {
                     status = exception.to_string().set_style(Style::new().fg(Color::Red));
@@ -218,9 +250,10 @@ fn event_handler(state: &mut GameState) -> Result<EventResponse, Error> {
                                     .1
                                     .iter()
                                     .position(|x: &char| *x == letter)
-                                    .unwrap(),
+                                    .ok_or(Error::NoMoreTiles)?,
                             ),
                         );
+                        state.score -= 5;
                         state.tileset.0.shuffle(&mut ThreadRng::default());
                     }
                 }
@@ -240,11 +273,13 @@ fn event_handler(state: &mut GameState) -> Result<EventResponse, Error> {
                                 .position(|x: &char| *x == letter)
                                 .unwrap(),
                         );
+                        state.score += state.scoretable[&letter];
                     }
                 }
                 KeyCode::Backspace if state.game_end.is_none() => {
                     if let Some(tile) = state.camera.pick_up() {
                         state.tileset.1.push(tile);
+                        state.score -= state.scoretable[&tile];
                     }
                 }
                 _ => (),
@@ -261,7 +296,7 @@ pub enum Error {
     WordsNotConnected,
     #[error("Invalid word \"{0}\"!")]
     InvalidWord(String),
-    #[error("The pile's all out of tiles, or there isn't enough to pull! Call Guavagrams!")]
+    #[error("The pile's all out of tiles, or there isn't enough to pull!")]
     NoMoreTiles,
     #[error("You still have tiles in your hand!")]
     HandHasTiles,

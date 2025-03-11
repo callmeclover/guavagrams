@@ -18,7 +18,7 @@ pub fn list_dictionaries() -> Vec<PathBuf> {
             entry.ok().and_then(|x: DirEntry| {
                 if x.file_type().is_file() {
                     return Some(x);
-                };
+                }
                 None
             })
         })

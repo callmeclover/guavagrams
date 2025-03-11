@@ -1,4 +1,4 @@
-use std::{collections::HashMap, time::Duration};
+use std::{collections::HashMap, fmt::Write, time::Duration};
 
 use rand::distr::weighted::WeightedIndex;
 
@@ -56,7 +56,7 @@ pub fn format_tile_list(hand: &[char]) -> String {
     count.sort_by(|(a, ..), (b, ..)| a.cmp(b));
 
     for (entry, amount) in count {
-        output.push_str(&format!("'{entry}' ({amount}), "));
+        write!(&mut output, "'{entry}' ({amount}), ").unwrap();
     }
 
     output
