@@ -1,0 +1,3 @@
+[toolchain]
+channel = "nightly"
+# This will keep being nightly until `mixed_integer_ops_unsigned_sub` is stablized.

@@ -26,6 +26,7 @@ pub fn list_dictionaries() -> Vec<PathBuf> {
         .collect()
 }
 
+/// Reads a dictionary of words from a CSV file.
 pub fn get_dictionary(path: &Path) -> csv::Result<HashSet<String>> {
     Ok(Reader::from_path(path)?
         .into_records()
@@ -44,6 +45,7 @@ pub type LetterDistribution = Vec<(char, usize)>;
 pub enum Distribution {
     /// The distributed rarity of tiles from a dictionary.
     Dictionary(LetterDistribution),
+    /// The standard Bananagrams tile distribution.
     Bananagrams,
     Scrabble,
 }
@@ -66,7 +68,7 @@ impl Distribution {
             characters
                 // Chunk all characters into seperate, smaller arrays
                 .chunk_by(|x: &char, y: &char| x == y)
-                // Map each `x` to `(x, count)`
+                // Map each `[x]` to `(x, count)`
                 .map(|x: &[char]| (x[0], x.len()))
                 .collect(),
         )
@@ -121,6 +123,7 @@ impl Distribution {
         }
     }
 
+    /// Checks if the distribution contains a letter.
     pub fn contains_letter(&self, letter: char) -> bool {
         match self {
             Self::Dictionary(items) => items.iter().any(|x| x.0 == letter),

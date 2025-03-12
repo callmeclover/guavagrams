@@ -1,7 +1,7 @@
 pub mod index;
 
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     sync::{Arc, Mutex},
 };
 
@@ -178,6 +178,45 @@ impl Grid {
             }
         }
         Ok(())
+    }
+
+    #[allow(clippy::cast_precision_loss)]
+    pub fn score_grid(words: &[String], scoretable: &HashMap<char, i64>) -> i64 {
+        /*
+            Stale (previously used) words: 0.8x
+            Length of word: 1-3 is 1x, 4-6 is 1.5x, 7-9 is 2x, 10+ is 2.5x
+        */
+
+        let mut stale: Vec<String> = Vec::new();
+        let mut change: i64 = 0;
+
+        for word in words {
+            let mut word_score: f64 = 0.0;
+
+            // Score letters
+            for tile in word.chars() {
+                word_score += *scoretable.get(&tile).unwrap_or(&0) as f64;
+            }
+
+            // Length multiplier
+            word_score *= match word.len() {
+                1..=3 => 1.0,
+                4..=6 => 1.5,
+                7..=9 => 2.0,
+                _ => 2.5,
+            };
+
+            // Stale word check
+            // rescoring every word is a feature, not a bug. trust me. - clover <3
+            for _ in 0..stale.iter().filter(|x: &&String| *x == word).count() {
+                word_score *= 0.8;
+            }
+            stale.push(word.to_string());
+
+            change += word_score as i64;
+        }
+
+        change
     }
 }
 

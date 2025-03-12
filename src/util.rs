@@ -31,6 +31,7 @@ pub fn create_weights(list: &LetterDistribution) -> WeightedIndex<usize> {
     WeightedIndex::new(list.iter().map(|item: &(char, usize)| item.1)).unwrap()
 }
 
+/// Creates an HH:mm:ss timestamp from a duration.
 pub fn format_duration(duration: Duration) -> String {
     let secs: u64 = duration.as_secs();
     let hours: u64 = secs / 3600;
@@ -40,9 +41,11 @@ pub fn format_duration(duration: Duration) -> String {
     format!("{hours:02}:{minutes:02}:{seconds:02}")
 }
 
+/// Makes a string of each letter in "'x' (y)" format.
 pub fn format_tile_list(hand: &[char]) -> String {
     let mut output: String = String::new();
 
+    // Create a map of every tile and how many of it we have.
     let mut count = HashMap::new();
     for tile in hand {
         if let Some(entry) = count.get_mut(&tile) {
@@ -53,6 +56,7 @@ pub fn format_tile_list(hand: &[char]) -> String {
     }
 
     let mut count = count.iter().collect::<Vec<_>>();
+    // Sort as to not have a different order every frame.
     count.sort_by(|(a, ..), (b, ..)| a.cmp(b));
 
     for (entry, amount) in count {
