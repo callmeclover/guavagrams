@@ -187,7 +187,11 @@ impl Grid {
             Length of word: 1-3 is 1x, 4-6 is 1.5x, 7-9 is 2x, 10+ is 2.5x
         */
 
-        let mut stale: Vec<String> = Vec::new();
+        let mut seen = HashSet::new();
+    let stale = words
+        .iter()
+        .filter(|s| !seen.insert(*s)) // Keep only the first instance of each string
+        .collect::<Vec<_>>();
         let mut change: i64 = 0;
 
         for word in words {
@@ -208,10 +212,9 @@ impl Grid {
 
             // Stale word check
             // rescoring every word is a feature, not a bug. trust me. - clover <3
-            for _ in 0..stale.iter().filter(|x: &&String| *x == word).count() {
+            for _ in 0..stale.iter().filter(|x: &&&String| **x == word).count() {
                 word_score *= 0.8;
             }
-            stale.push(word.to_string());
 
             change += word_score as i64;
         }
