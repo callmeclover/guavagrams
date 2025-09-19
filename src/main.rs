@@ -1,5 +1,3 @@
-#![feature(mixed_integer_ops_unsigned_sub)]
-
 mod camera;
 mod dictionary;
 mod grid;
