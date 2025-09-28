@@ -13,8 +13,8 @@ use std::{
 
 use camera::Camera;
 use color_eyre::Result;
-use crossterm::event::{self};
-use dictionary::{get_dictionary, list_dictionaries, Distribution};
+use crossterm::event;
+use dictionary::{Distribution, get_dictionary, list_dictionaries};
 use grid::{Grid, SharedGrid};
 use ratatui::{prelude::*, style::Styled};
 use ui::{draw, event_handler};

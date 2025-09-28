@@ -8,7 +8,7 @@ use csv::{Reader, StringRecord};
 use rand::{distr::Distribution as _, rngs::ThreadRng, seq::SliceRandom};
 use walkdir::{DirEntry, WalkDir};
 
-use crate::{util::create_weights, Error};
+use crate::{Error, util::create_weights};
 
 /// Recursively lists every file in `./dictionaries/`.
 pub fn list_dictionaries() -> Vec<PathBuf> {

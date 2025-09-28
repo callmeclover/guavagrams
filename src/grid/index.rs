@@ -5,7 +5,7 @@ use std::{
 
 use super::{BoolGrid, Grid};
 
-/// A coordinate on a 2D grid.
+/// A XY coordinate on a 2D grid.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct Coordinate(pub i8, pub i8);
 

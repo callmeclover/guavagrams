@@ -7,14 +7,14 @@ use std::{
 
 pub use index::{Coordinate, GridIndex};
 
-use crate::{box_array, Error};
+use crate::{Error, box_array};
 
 /// The amount of columns in a grid.
 /// The default is 256.
-const GRID_WIDTH: usize = u8::MAX as usize + 1;
+const GRID_WIDTH: usize = 256;
 /// The amount of rows in the grid.
 /// The default is 256.
-const GRID_HEIGHT: usize = u8::MAX as usize + 1;
+const GRID_HEIGHT: usize = 256;
 
 /// A 2D, fixed size array on the heap.
 #[derive(Debug)]
@@ -188,10 +188,10 @@ impl Grid {
         */
 
         let mut seen = HashSet::new();
-    let stale = words
-        .iter()
-        .filter(|s| !seen.insert(*s)) // Keep only the first instance of each string
-        .collect::<Vec<_>>();
+        let stale = words
+            .iter()
+            .filter(|s| !seen.insert(*s)) // Keep only the first instance of each string
+            .collect::<Vec<_>>();
         let mut change: i64 = 0;
 
         for word in words {
