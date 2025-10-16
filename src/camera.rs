@@ -7,17 +7,17 @@ use ratatui::{
     widgets::{Paragraph, Widget},
 };
 
-use crate::grid::{Coordinate, GridIndex, SharedGrid};
+use crate::grid::{Coordinate, GridIndex, Grid};
 
 #[derive(Clone)]
 pub struct Camera {
-    pub grid: SharedGrid,
+    pub grid: Grid<Option<char>>,
     pub cursor: Coordinate,
     current_screen_space: Rect,
 }
 
 impl Camera {
-    pub fn new(grid: SharedGrid) -> Self {
+    pub fn new(grid: Grid<Option<char>>) -> Self {
         Self {
             grid,
             cursor: Coordinate::default(),
@@ -25,18 +25,17 @@ impl Camera {
         }
     }
 
-    pub fn put(&self, letter: char) -> bool {
-        let mut handle = self.grid.lock().unwrap();
-        if handle[self.cursor].is_some() {
+    pub fn put(&mut self, letter: char) -> bool {
+        if self.grid[self.cursor].is_some() {
             return false;
         }
-        handle[self.cursor].get_or_insert(letter);
+        self.grid[self.cursor].get_or_insert(letter);
         true
     }
 
-    pub fn pick_up(&self) -> Option<char> {
-        let tile: Option<char> = self.grid.lock().unwrap()[self.cursor];
-        self.grid.lock().unwrap()[self.cursor] = None;
+    pub fn pick_up(&mut self) -> Option<char> {
+        let tile: Option<char> = self.grid[self.cursor];
+        self.grid[self.cursor] = None;
         tile
     }
 }
@@ -72,12 +71,12 @@ impl Widget for &mut Camera {
                     ..=clamped_x.saturating_add((area.width / 4) as u8)
                 {
                     let span = if GridIndex(x, y) == cursor_index {
-                        self.grid.lock().unwrap()[GridIndex(x, y)]
+                        self.grid[GridIndex(x, y)]
                             .unwrap_or('.')
                             .to_string()
                             .set_style(Style::new().fg(Color::Black).bg(Color::White))
                     } else {
-                        self.grid.lock().unwrap()[GridIndex(x, y)]
+                        self.grid[GridIndex(x, y)]
                             .unwrap_or('.')
                             .to_string()
                             .set_style(Style::default())

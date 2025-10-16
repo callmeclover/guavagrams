@@ -7,7 +7,6 @@ mod util;
 use std::{
     collections::{HashMap, HashSet},
     path::PathBuf,
-    sync::{Arc, Mutex},
     time::{Duration, Instant},
 };
 
@@ -15,7 +14,7 @@ use camera::Camera;
 use color_eyre::Result;
 use crossterm::event;
 use dictionary::{Distribution, get_dictionary, list_dictionaries};
-use grid::{Grid, SharedGrid};
+use grid::{Grid};
 use ratatui::{prelude::*, style::Styled};
 use ui::{draw, event_handler};
 
@@ -39,7 +38,7 @@ fn main() -> Result<()> {
     let dictionary_list: Vec<PathBuf> = list_dictionaries();
     let dictionary: HashSet<String> = get_dictionary(&dictionary_list[0])?;
 
-    let grid: SharedGrid = Arc::new(Mutex::new(Grid::new()));
+    let grid: Grid<Option<char>> = Grid::default();
     let mut state: GameState = GameState {
         dictionary,
         camera: Camera::new(grid),

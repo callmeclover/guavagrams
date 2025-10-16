@@ -110,16 +110,14 @@ pub fn event_handler(state: &mut GameState) -> Result<EventResponse, Error> {
                     return Err(Error::HandHasTiles);
                 }
 
-                let handle = state.camera.grid.lock().unwrap();
-                let words: Vec<String> = handle.scan_for_words();
-                if let Err(exception) = handle
+                let words: Vec<String> = state.camera.grid.scan_for_words();
+                if let Err(exception) = state.camera.grid
                     .validate_connectivity()
                     .and_then(|()| Grid::validate_words(&words, &state.dictionary))
                 {
                     state.score -= state.score / 20;
                     return Err(exception);
                 }
-                drop(handle);
 
                 state.score += Grid::score_grid(&words, &state.scoretable);
 

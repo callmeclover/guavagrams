@@ -2,7 +2,6 @@ pub mod index;
 
 use std::{
     collections::{HashMap, HashSet},
-    sync::{Arc, Mutex},
 };
 
 pub use index::{Coordinate, GridIndex};
@@ -17,16 +16,19 @@ const GRID_WIDTH: usize = 256;
 const GRID_HEIGHT: usize = 256;
 
 /// A 2D, fixed size array on the heap.
-#[derive(Debug)]
-pub struct Grid(Box<[[Option<char>; GRID_HEIGHT]; GRID_WIDTH]>);
+#[derive(Debug, Clone)]
+pub struct Grid<T>(Box<[[T; GRID_HEIGHT]; GRID_WIDTH]>);
+
+impl<T> Grid<T>
+where T: Copy {
+    /// Constructs a `Grid`.
+    pub fn new(filler: T) -> Self {
+        Self(box_array![[filler; GRID_HEIGHT]; GRID_WIDTH])
+    }
+}
 
 #[allow(clippy::cast_possible_truncation)]
-impl Grid {
-    /// Constructs a `Grid`.
-    pub fn new() -> Self {
-        Self(box_array![[None; GRID_HEIGHT]; GRID_WIDTH])
-    }
-
+impl Grid<Option<char>> {
     /// Scans a `Grid` for words.
     pub fn scan_for_words(&self) -> Vec<String> {
         let mut output: Vec<String> = Vec::new();
@@ -122,7 +124,7 @@ impl Grid {
     }
 
     /// Depth-first search to traverse all connected cells.
-    fn dfs(&self, visited: &mut BoolGrid, coordinate: Coordinate) {
+    fn dfs(&self, visited: &mut Grid<bool>, coordinate: Coordinate) {
         /// Every direction that DFS can go in.
         const DIRECTIONS: [Coordinate; 4] = [
             Coordinate(1, 0),
@@ -145,7 +147,7 @@ impl Grid {
 
     /// Ensures that all words are connected.
     pub fn validate_connectivity(&self) -> Result<(), Error> {
-        let mut visited: BoolGrid = BoolGrid::new();
+        let mut visited: Grid<bool> = Grid::default();
 
         // Find the first occupied cell to start DFS.
         let mut start: Option<GridIndex> = None;
@@ -223,24 +225,12 @@ impl Grid {
     }
 }
 
-impl Default for Grid {
+impl<T> Default for Grid<T>
+where T: Default + Copy {
     fn default() -> Self {
-        Self::new()
+        Self::new(T::default())
     }
 }
-
-/// A 2D, fixed size array of booleans on the heap.
-#[derive(Debug)]
-pub struct BoolGrid(Box<[[bool; GRID_HEIGHT]; GRID_WIDTH]>);
-
-impl BoolGrid {
-    /// Constructs a `BoolGrid`.
-    pub fn new() -> Self {
-        Self(box_array![[false; GRID_HEIGHT]; GRID_WIDTH])
-    }
-}
-
-pub type SharedGrid = Arc<Mutex<Grid>>;
 
 #[derive(Debug, PartialEq, Eq)]
 enum Direction {

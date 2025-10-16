@@ -3,7 +3,7 @@ use std::{
     ops::{Add, AddAssign, Index, IndexMut, Sub},
 };
 
-use super::{BoolGrid, Grid};
+use super::{Grid};
 
 /// A XY coordinate on a 2D grid.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
@@ -49,29 +49,15 @@ impl Sub for Coordinate {
     }
 }
 
-impl Index<Coordinate> for Grid {
-    type Output = Option<char>;
+impl<T> Index<Coordinate> for Grid<T> {
+    type Output = T;
 
     fn index(&self, index: Coordinate) -> &Self::Output {
         &self[GridIndex::from(index)]
     }
 }
 
-impl IndexMut<Coordinate> for Grid {
-    fn index_mut(&mut self, index: Coordinate) -> &mut Self::Output {
-        &mut self[GridIndex::from(index)]
-    }
-}
-
-impl Index<Coordinate> for BoolGrid {
-    type Output = bool;
-
-    fn index(&self, index: Coordinate) -> &Self::Output {
-        &self[GridIndex::from(index)]
-    }
-}
-
-impl IndexMut<Coordinate> for BoolGrid {
+impl<T> IndexMut<Coordinate> for Grid<T> {
     fn index_mut(&mut self, index: Coordinate) -> &mut Self::Output {
         &mut self[GridIndex::from(index)]
     }
@@ -117,29 +103,15 @@ impl Sub for GridIndex {
     }
 }
 
-impl Index<GridIndex> for Grid {
-    type Output = Option<char>;
+impl<T> Index<GridIndex> for Grid<T> {
+    type Output = T;
 
     fn index(&self, index: GridIndex) -> &Self::Output {
         &self.0[index.1 as usize][index.0 as usize]
     }
 }
 
-impl IndexMut<GridIndex> for Grid {
-    fn index_mut(&mut self, index: GridIndex) -> &mut Self::Output {
-        &mut self.0[index.1 as usize][index.0 as usize]
-    }
-}
-
-impl Index<GridIndex> for BoolGrid {
-    type Output = bool;
-
-    fn index(&self, index: GridIndex) -> &Self::Output {
-        &self.0[index.1 as usize][index.0 as usize]
-    }
-}
-
-impl IndexMut<GridIndex> for BoolGrid {
+impl<T> IndexMut<GridIndex> for Grid<T> {
     fn index_mut(&mut self, index: GridIndex) -> &mut Self::Output {
         &mut self.0[index.1 as usize][index.0 as usize]
     }
