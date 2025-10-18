@@ -3,7 +3,7 @@ use std::{
     ops::{Add, AddAssign, Index, IndexMut, Sub},
 };
 
-use super::{Grid};
+use super::Grid;
 
 /// A XY coordinate on a 2D grid.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
@@ -34,8 +34,8 @@ impl Display for Coordinate {
 impl From<GridIndex> for Coordinate {
     fn from(value: GridIndex) -> Self {
         Self(
-            (-128_i8).wrapping_add_unsigned(value.0),
-            (-128_i8).wrapping_sub_unsigned(value.1),
+            value.0.cast_signed() ^ i8::MIN,
+            value.1.cast_signed() ^ i8::MAX,
         )
     }
 }
@@ -83,8 +83,8 @@ pub struct GridIndex(pub u8, pub u8);
 impl From<Coordinate> for GridIndex {
     fn from(value: Coordinate) -> Self {
         Self(
-            128_u8.wrapping_add_signed(value.0),
-            128_u8.wrapping_sub_signed(value.1),
+            (value.0 ^ i8::MIN).cast_unsigned(),
+            (value.0 ^ i8::MAX).cast_unsigned(),
         )
     }
 }
@@ -114,5 +114,23 @@ impl<T> Index<GridIndex> for Grid<T> {
 impl<T> IndexMut<GridIndex> for Grid<T> {
     fn index_mut(&mut self, index: GridIndex) -> &mut Self::Output {
         &mut self.0[index.1 as usize][index.0 as usize]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Coordinate, GridIndex};
+
+    #[test]
+    fn test_conversion_sanity() {
+        // Converting Coordinate to GridIndex
+        assert_eq!(GridIndex::from(Coordinate(0, 0)), GridIndex(128, 127));
+        assert_eq!(GridIndex::from(Coordinate(-128, -128)), GridIndex(0, 255));
+        assert_eq!(GridIndex::from(Coordinate(127, 127)), GridIndex(255, 0));
+
+        // Converting GridIndex to Coordinate
+        assert_eq!(Coordinate::from(GridIndex(128, 127)), Coordinate(0, 0));
+        assert_eq!(Coordinate::from(GridIndex(0, 255)), Coordinate(-128, -128));
+        assert_eq!(Coordinate::from(GridIndex(255, 0)), Coordinate(127, 127));
     }
 }

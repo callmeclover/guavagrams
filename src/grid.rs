@@ -1,8 +1,6 @@
 pub mod index;
 
-use std::{
-    collections::{HashMap, HashSet},
-};
+use std::collections::{HashMap, HashSet};
 
 pub use index::{Coordinate, GridIndex};
 
@@ -20,7 +18,9 @@ const GRID_HEIGHT: usize = 256;
 pub struct Grid<T>(Box<[[T; GRID_HEIGHT]; GRID_WIDTH]>);
 
 impl<T> Grid<T>
-where T: Copy {
+where
+    T: Copy,
+{
     /// Constructs a `Grid`.
     pub fn new(filler: T) -> Self {
         Self(box_array![[filler; GRID_HEIGHT]; GRID_WIDTH])
@@ -226,7 +226,9 @@ impl Grid<Option<char>> {
 }
 
 impl<T> Default for Grid<T>
-where T: Default + Copy {
+where
+    T: Default + Copy,
+{
     fn default() -> Self {
         Self::new(T::default())
     }

@@ -7,7 +7,7 @@ use ratatui::{
     widgets::{Paragraph, Widget},
 };
 
-use crate::grid::{Coordinate, GridIndex, Grid};
+use crate::grid::{Coordinate, Grid, GridIndex};
 
 #[derive(Clone)]
 pub struct Camera {

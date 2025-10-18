@@ -111,7 +111,9 @@ pub fn event_handler(state: &mut GameState) -> Result<EventResponse, Error> {
                 }
 
                 let words: Vec<String> = state.camera.grid.scan_for_words();
-                if let Err(exception) = state.camera.grid
+                if let Err(exception) = state
+                    .camera
+                    .grid
                     .validate_connectivity()
                     .and_then(|()| Grid::validate_words(&words, &state.dictionary))
                 {
