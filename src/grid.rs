@@ -1,21 +1,19 @@
+pub mod bounds;
 pub mod index;
 
 use std::collections::{HashMap, HashSet};
 
 pub use index::{Coordinate, GridIndex};
 
-use crate::{Error, box_array};
+use crate::{Error, box_array, grid::bounds::GridSize};
 
-/// The amount of columns in a grid.
-/// The default is 256.
-const GRID_WIDTH: usize = 256;
-/// The amount of rows in the grid.
-/// The default is 256.
-const GRID_HEIGHT: usize = 256;
+/// The size of a grid.
+/// The default is 256x256.
+pub const GRID_SIZE: GridSize = GridSize::new(256, 256);
 
 /// A 2D, fixed size array on the heap.
 #[derive(Debug, Clone)]
-pub struct Grid<T>(Box<[[T; GRID_HEIGHT]; GRID_WIDTH]>);
+pub struct Grid<T>(Box<[[T; GRID_SIZE.height]; GRID_SIZE.width]>);
 
 impl<T> Grid<T>
 where
@@ -23,7 +21,7 @@ where
 {
     /// Constructs a `Grid`.
     pub fn new(filler: T) -> Self {
-        Self(box_array![[filler; GRID_HEIGHT]; GRID_WIDTH])
+        Self(box_array![[filler; GRID_SIZE.height]; GRID_SIZE.width])
     }
 }
 
@@ -35,11 +33,10 @@ impl Grid<Option<char>> {
         let mut current_word: String = String::new();
 
         // Scan horizontally.
-        for y in 0..GRID_WIDTH {
-            for x in 0..GRID_HEIGHT {
-                if let Some(letter) = self[GridIndex(x as u8, y as u8)] {
-                    let direction: Direction =
-                        self.letter_adjacent(GridIndex(x as u8, y as u8).into());
+        for y in 0..GRID_SIZE.width {
+            for x in 0..GRID_SIZE.height {
+                if let Some(letter) = self[GridIndex(x, y)] {
+                    let direction: Direction = self.letter_adjacent(GridIndex(x, y).into());
                     if direction != Direction::Vertical {
                         current_word.push(letter);
                     }
@@ -56,10 +53,10 @@ impl Grid<Option<char>> {
         }
 
         // Scan vertically.
-        for x in 0..GRID_HEIGHT {
-            for y in 0..GRID_WIDTH {
-                if let Some(letter) = self[GridIndex(x as u8, y as u8)] {
-                    let direction = self.letter_adjacent(GridIndex(x as u8, y as u8).into());
+        for x in 0..GRID_SIZE.height {
+            for y in 0..GRID_SIZE.width {
+                if let Some(letter) = self[GridIndex(x, y)] {
+                    let direction = self.letter_adjacent(GridIndex(x, y).into());
                     if direction != Direction::Horizontal {
                         current_word.push(letter);
                     }
@@ -151,10 +148,10 @@ impl Grid<Option<char>> {
 
         // Find the first occupied cell to start DFS.
         let mut start: Option<GridIndex> = None;
-        for x in 0..GRID_HEIGHT {
-            for y in 0..GRID_WIDTH {
-                if self[GridIndex(x as u8, y as u8)].is_some() {
-                    start = Some(GridIndex(x as u8, y as u8));
+        for x in 0..GRID_SIZE.height {
+            for y in 0..GRID_SIZE.width {
+                if self[GridIndex(x, y)].is_some() {
+                    start = Some(GridIndex(x, y));
                     break;
                 }
             }
@@ -168,11 +165,9 @@ impl Grid<Option<char>> {
             self.dfs(&mut visited, index.into());
 
             // Check if all occupied cells are visited.
-            for y in 0..GRID_HEIGHT {
-                for x in 0..GRID_WIDTH {
-                    if self[GridIndex(x as u8, y as u8)].is_some()
-                        && !visited[GridIndex(x as u8, y as u8)]
-                    {
+            for y in 0..GRID_SIZE.height {
+                for x in 0..GRID_SIZE.width {
+                    if self[GridIndex(x, y)].is_some() && !visited[GridIndex(x, y)] {
                         // Found an unconnected cell!
                         return Err(Error::WordsNotConnected);
                     }

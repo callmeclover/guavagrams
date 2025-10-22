@@ -3,11 +3,13 @@ use std::{
     ops::{Add, AddAssign, Index, IndexMut, Sub},
 };
 
+use crate::grid::GRID_SIZE;
+
 use super::Grid;
 
 /// A XY coordinate on a 2D grid.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
-pub struct Coordinate(pub i8, pub i8);
+pub struct Coordinate(pub isize, pub isize);
 
 impl Add for Coordinate {
     type Output = Self;
@@ -34,8 +36,8 @@ impl Display for Coordinate {
 impl From<GridIndex> for Coordinate {
     fn from(value: GridIndex) -> Self {
         Self(
-            value.0.cast_signed() ^ i8::MIN,
-            value.1.cast_signed() ^ i8::MAX,
+            value.0.cast_signed() + GRID_SIZE.bound_x.0,
+            GRID_SIZE.bound_y.1 - value.1.cast_signed(),
         )
     }
 }
@@ -77,14 +79,14 @@ impl Coordinate {
 
 /// An index to help with indexing `Grid`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct GridIndex(pub u8, pub u8);
+pub struct GridIndex(pub usize, pub usize);
 
 #[allow(clippy::cast_sign_loss)]
 impl From<Coordinate> for GridIndex {
     fn from(value: Coordinate) -> Self {
         Self(
-            (value.0 ^ i8::MIN).cast_unsigned(),
-            (value.0 ^ i8::MAX).cast_unsigned(),
+            (value.0 - GRID_SIZE.bound_x.0).cast_unsigned(),
+            (GRID_SIZE.bound_y.1 - value.1).cast_unsigned(),
         )
     }
 }
@@ -107,18 +109,20 @@ impl<T> Index<GridIndex> for Grid<T> {
     type Output = T;
 
     fn index(&self, index: GridIndex) -> &Self::Output {
-        &self.0[index.1 as usize][index.0 as usize]
+        &self.0[index.1][index.0]
     }
 }
 
 impl<T> IndexMut<GridIndex> for Grid<T> {
     fn index_mut(&mut self, index: GridIndex) -> &mut Self::Output {
-        &mut self.0[index.1 as usize][index.0 as usize]
+        &mut self.0[index.1][index.0]
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use pretty_assertions::assert_eq;
+
     use super::{Coordinate, GridIndex};
 
     #[test]

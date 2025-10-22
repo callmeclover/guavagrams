@@ -7,7 +7,7 @@ use ratatui::{
     widgets::{Paragraph, Widget},
 };
 
-use crate::grid::{Coordinate, Grid, GridIndex};
+use crate::grid::{Coordinate, GRID_SIZE, Grid, GridIndex};
 
 #[derive(Clone)]
 pub struct Camera {
@@ -52,23 +52,28 @@ impl Widget for &mut Camera {
     where
         Self: Sized,
     {
+        let ubound_x = GRID_SIZE.bound_x.as_unsigned();
+        let ubound_y = GRID_SIZE.bound_y.as_unsigned();
         self.current_screen_space = area;
         let text: Vec<Line> = {
             let mut output: Vec<Line> = Vec::new();
             let cursor_index: GridIndex = self.cursor.into();
-            let clamped_y = cursor_index.1.clamp(
-                u8::MIN.saturating_add(area.height as u8 / 2),
-                u8::MAX.saturating_sub(area.height as u8 / 2),
-            );
+
             let clamped_x = cursor_index.0.clamp(
-                u8::MIN.saturating_add(area.width as u8 / 4),
-                u8::MAX.saturating_sub(area.width as u8 / 4),
+                ubound_x.0.saturating_add(area.width as usize / 4),
+                ubound_x.1.saturating_sub(area.width as usize / 4),
+            );
+            let clamped_y = cursor_index.1.clamp(
+                ubound_y.0.saturating_add(area.height as usize / 2),
+                ubound_y.1.saturating_sub(area.height as usize / 2),
             );
 
-            for y in (clamped_y - (area.height / 2) as u8)..=(clamped_y + (area.height / 2) as u8) {
+            for y in
+                (clamped_y - (area.height / 2) as usize)..=(clamped_y + (area.height / 2) as usize)
+            {
                 let mut line: Line = Line::default();
-                for x in clamped_x.saturating_sub((area.width / 4) as u8)
-                    ..=clamped_x.saturating_add((area.width / 4) as u8)
+                for x in clamped_x.saturating_sub((area.width / 4) as usize)
+                    ..=clamped_x.saturating_add((area.width / 4) as usize)
                 {
                     let span = if GridIndex(x, y) == cursor_index {
                         self.grid[GridIndex(x, y)]
