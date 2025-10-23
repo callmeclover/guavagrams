@@ -6,7 +6,7 @@ use rand::{rngs::ThreadRng, seq::SliceRandom};
 use ratatui::{
     Frame,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
-    style::{Color, Style, Styled, Stylize as _},
+    style::Stylize as _,
     text::{Line, Span},
     widgets::{Block, BorderType, Borders, Paragraph, Wrap},
 };
@@ -72,8 +72,8 @@ pub fn draw(frame: &mut Frame, state: &mut GameState) {
         &mut keys
             .iter()
             .map(|(key, desc)| {
-                let key: Span = Span::styled(format!(" {key} "), Style::new().cyan());
-                let desc: Span = Span::styled(format!(" {desc} "), Style::default());
+                let key: Span = format!(" {key} ").cyan();
+                let desc: Span = format!(" {desc} ").white();
                 Line::from(vec![key, desc])
             })
             .collect_vec(),
@@ -125,15 +125,13 @@ pub fn event_handler(state: &mut GameState) -> Result<EventResponse, Error> {
 
                 if state.tileset.0.is_empty() {
                     state.game_end = Some(Instant::now());
-                    return Ok(EventResponse::ChangeStatus(
-                        "Guavagrams!".set_style(Color::Green),
-                    ));
+                    return Ok(EventResponse::ChangeStatus("Guavagrams!".green()));
                 }
                 state
                     .tileset
                     .1
                     .append(&mut Distribution::pull_from_pile(&mut state.tileset.0, 1)?);
-                return Ok(EventResponse::ChangeStatus("Peel!".set_style(Color::Green)));
+                return Ok(EventResponse::ChangeStatus("Peel!".green()));
             }
             KeyCode::Char(letter)
                 if event.modifiers.contains(KeyModifiers::CONTROL)
@@ -161,7 +159,7 @@ pub fn event_handler(state: &mut GameState) -> Result<EventResponse, Error> {
                 }
 
                 return Ok(EventResponse::ChangeStatus(
-                    "Deducted 5% of points for trading in tiles.".set_style(Color::Red),
+                    "Deducted 5% of points for trading in tiles.".red(),
                 ));
             }
             KeyCode::Char(letter)

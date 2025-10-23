@@ -15,7 +15,7 @@ use color_eyre::Result;
 use crossterm::event;
 use dictionary::{Distribution, get_dictionary, list_dictionaries};
 use grid::Grid;
-use ratatui::{prelude::*, style::Styled};
+use ratatui::prelude::*;
 use ui::{draw, event_handler};
 
 #[derive(Clone)]
@@ -97,7 +97,7 @@ fn main() -> Result<()> {
                     EventResponse::Pass => (),
                 },
                 Err(exception) => {
-                    state.status = exception.to_string().set_style(Style::new().fg(Color::Red));
+                    state.status = exception.to_string().red();
                 }
             }
         }

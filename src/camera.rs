@@ -2,7 +2,7 @@ use std::ops::AddAssign;
 
 use ratatui::{
     layout::Rect,
-    style::{Color, Style, Styled},
+    style::Stylize as _,
     text::Line,
     widgets::{Paragraph, Widget},
 };
@@ -75,15 +75,15 @@ impl Widget for &mut Camera {
                     ..=clamped_x.saturating_add((area.width / 4) as usize)
                 {
                     let span = if GridIndex(x, y) == cursor_index {
-                        self.grid[GridIndex(x, y)]
-                            .unwrap_or('.')
-                            .to_string()
-                            .set_style(Style::new().fg(Color::Black).bg(Color::White))
+                        self.grid[GridIndex(x, y)].map_or_else(
+                            || '.'.to_string().black().on_white(),
+                            |letter: char| letter.to_string().light_green().on_white(),
+                        )
                     } else {
-                        self.grid[GridIndex(x, y)]
-                            .unwrap_or('.')
-                            .to_string()
-                            .set_style(Style::default())
+                        self.grid[GridIndex(x, y)].map_or_else(
+                            || '.'.to_string().green(),
+                            |letter: char| letter.to_string().green(),
+                        )
                     };
                     line.push_span(span);
                     line.push_span(" ");
