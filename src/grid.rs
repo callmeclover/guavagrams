@@ -112,10 +112,13 @@ impl Grid<Option<char>> {
 
     /// Checks every word to ensure it is in the dictionary.
     pub fn validate_words(words: &[String], dictionary: &HashSet<String>) -> Result<(), Error> {
-        for word in words.iter().cloned() {
-            if !dictionary.contains(&word) {
-                return Err(Error::InvalidWord(word));
-            }
+        let invalid = words
+            .iter()
+            .filter(|word| !dictionary.contains(word.as_str()))
+            .cloned()
+            .collect::<Vec<String>>();
+        if !invalid.is_empty() {
+            return Err(Error::InvalidWord(invalid[0].clone()));
         }
         Ok(())
     }

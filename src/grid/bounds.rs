@@ -22,7 +22,7 @@ impl GridSize {
 
 impl Bound {
     pub const fn new(full: usize) -> Self {
-        let middle: isize = (full / 2) as isize;
+        let middle: isize = (full / 2).cast_signed();
 
         if full.is_multiple_of(2) {
             Self(-middle, middle - 1)
@@ -31,11 +31,11 @@ impl Bound {
         }
     }
 
-    pub fn as_unsigned(&self) -> (usize, usize) {
+    pub const fn as_unsigned(&self) -> (usize, usize) {
         if -self.0 == self.1 {
-            (0, (self.1 as usize) * 2)
+            (0, self.1.cast_unsigned() * 2)
         } else {
-            (0, (self.1 as usize) * 2 + 1)
+            (0, self.1.cast_unsigned() * 2 + 1)
         }
     }
 }

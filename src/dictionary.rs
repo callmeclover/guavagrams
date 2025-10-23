@@ -74,22 +74,13 @@ impl Distribution {
         )
     }
 
-    #[allow(
-        clippy::cast_precision_loss,
-        clippy::cast_possible_truncation,
-        clippy::cast_sign_loss
-    )]
     fn create_pile_internals(letter_distribution: &LetterDistribution, amount: usize) -> Vec<char> {
         let mut output: Vec<char> = Vec::new();
-        let total_letters: f64 = letter_distribution
+        let total_letters: usize = letter_distribution
             .iter()
-            .fold(0.0, |total: f64, (.., curr)| total + *curr as f64);
-        for (tile, frequency) in letter_distribution.clone() {
-            output.extend_from_slice(&vec![
-                tile;
-                (frequency as f64 / (total_letters / amount as f64)).round()
-                    as usize
-            ]);
+            .fold(0, |total: usize, (.., curr)| total + curr);
+        for (tile, frequency) in letter_distribution {
+            output.extend_from_slice(&vec![*tile; frequency / (total_letters / amount)]);
         }
         output.shuffle(&mut ThreadRng::default());
         output
@@ -112,13 +103,21 @@ impl Distribution {
         Ok(pile.drain(..amount).collect())
     }
 
-    pub fn pull_endless(&self) -> char {
+    pub fn pull_endless(&self, amount: usize) -> Vec<char> {
         let mut rng: ThreadRng = ThreadRng::default();
         match self {
             Self::Dictionary(letter_distribution) => {
-                letter_distribution[create_weights(letter_distribution).sample(&mut rng)].0
+                (0..amount).fold(Vec::new(), |mut x: Vec<char>, _| {
+                    x.push(
+                        letter_distribution[create_weights(letter_distribution).sample(&mut rng)].0,
+                    );
+                    x
+                })
             }
-            Self::Bananagrams => BANANAGRAMS[create_weights(&BANANAGRAMS).sample(&mut rng)].0,
+            Self::Bananagrams => (0..amount).fold(Vec::new(), |mut x: Vec<char>, _| {
+                x.push(BANANAGRAMS[create_weights(&BANANAGRAMS).sample(&mut rng)].0);
+                x
+            }),
             Self::Scrabble => todo!(),
         }
     }

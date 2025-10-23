@@ -7,7 +7,7 @@ use ratatui::{
     Frame,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style, Styled, Stylize as _},
-    text::{Line, Span, Text},
+    text::{Line, Span},
     widgets::{Block, BorderType, Borders, Paragraph, Wrap},
 };
 
@@ -82,7 +82,7 @@ pub fn draw(frame: &mut Frame, state: &mut GameState) {
     frame.render_widget(Paragraph::new(lines), block_layout[0]);
     frame.render_widget(&tiles_block, block_layout[1]);
     frame.render_widget(
-        Paragraph::new(Text::from(format_tile_list(&state.tileset.1))).wrap(Wrap { trim: false }),
+        Paragraph::new(format_tile_list(&state.tileset.1)).wrap(Wrap { trim: false }),
         tiles_block.inner(block_layout[1]),
     );
     frame.render_widget(&mut state.camera, layout[1]);
@@ -126,16 +126,14 @@ pub fn event_handler(state: &mut GameState) -> Result<EventResponse, Error> {
                 if state.tileset.0.is_empty() {
                     state.game_end = Some(Instant::now());
                     return Ok(EventResponse::ChangeStatus(
-                        "Guavagrams!".set_style(Style::new().fg(Color::Green)),
+                        "Guavagrams!".set_style(Color::Green),
                     ));
                 }
                 state
                     .tileset
                     .1
                     .append(&mut Distribution::pull_from_pile(&mut state.tileset.0, 1)?);
-                return Ok(EventResponse::ChangeStatus(
-                    "Peel!".set_style(Style::new().fg(Color::Green)),
-                ));
+                return Ok(EventResponse::ChangeStatus("Peel!".set_style(Color::Green)));
             }
             KeyCode::Char(letter)
                 if event.modifiers.contains(KeyModifiers::CONTROL)
@@ -163,8 +161,7 @@ pub fn event_handler(state: &mut GameState) -> Result<EventResponse, Error> {
                 }
 
                 return Ok(EventResponse::ChangeStatus(
-                    "Deducted 5% of points for trading in tiles."
-                        .set_style(Style::new().fg(Color::Red)),
+                    "Deducted 5% of points for trading in tiles.".set_style(Color::Red),
                 ));
             }
             KeyCode::Char(letter)

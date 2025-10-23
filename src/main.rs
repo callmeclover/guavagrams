@@ -80,7 +80,7 @@ fn main() -> Result<()> {
             ('y', 4),
             ('z', 10),
         ]),
-        status: "".set_style(Style::new().fg(Color::Black).bg(Color::White)),
+        status: Span::default(),
     };
 
     let mut terminal = ratatui::init();

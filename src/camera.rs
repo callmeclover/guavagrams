@@ -46,7 +46,6 @@ impl AddAssign<Coordinate> for Camera {
     }
 }
 
-#[allow(clippy::cast_possible_truncation)]
 impl Widget for &mut Camera {
     fn render(self, area: ratatui::prelude::Rect, buf: &mut ratatui::prelude::Buffer)
     where

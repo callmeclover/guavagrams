@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Write, time::Duration};
+use std::{fmt::Write, time::Duration};
 
 use rand::distr::weighted::WeightedIndex;
 
@@ -46,18 +46,13 @@ pub fn format_tile_list(hand: &[char]) -> String {
     let mut output: String = String::new();
 
     // Create a map of every tile and how many of it we have.
-    let mut count = HashMap::new();
-    for tile in hand {
-        if let Some(entry) = count.get_mut(&tile) {
-            *entry += 1;
-        } else {
-            count.insert(tile, 1);
-        }
-    }
+    let mut count: Vec<(char, usize)> = hand
+        .chunk_by(|a, b| a == b)
+        .map(|chunk| (chunk[0], chunk.len()))
+        .collect();
 
-    let mut count = count.iter().collect::<Vec<_>>();
     // Sort as to not have a different order every frame.
-    count.sort_by(|(a, ..), (b, ..)| a.cmp(b));
+    count.sort_unstable();
 
     for (entry, amount) in count {
         write!(&mut output, "'{entry}' ({amount}), ").unwrap();
