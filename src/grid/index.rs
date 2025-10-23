@@ -3,9 +3,8 @@ use std::{
     ops::{Add, AddAssign, Index, IndexMut, Sub},
 };
 
-use crate::grid::GRID_SIZE;
-
 use super::Grid;
+use crate::grid::GRID_SIZE;
 
 /// A XY coordinate on a 2D grid.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
