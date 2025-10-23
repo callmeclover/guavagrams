@@ -81,7 +81,7 @@ impl Widget for &mut Camera {
                         )
                     } else {
                         self.grid[GridIndex(x, y)].map_or_else(
-                            || '.'.to_string().green(),
+                            || '.'.to_string().dark_gray(),
                             |letter: char| letter.to_string().green(),
                         )
                     };
