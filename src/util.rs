@@ -42,17 +42,17 @@ pub fn format_duration(duration: Duration) -> String {
 }
 
 /// Makes a string of each letter in "'x' (y)" format.
-pub fn format_tile_list(hand: &[char]) -> String {
+pub fn format_tile_list(hand: &mut [char]) -> String {
     let mut output: String = String::new();
 
+    // Sort as to not have a different order every frame.
+    hand.sort();
+
     // Create a map of every tile and how many of it we have.
-    let mut count: Vec<(char, usize)> = hand
+    let count: Vec<(char, usize)> = hand
         .chunk_by(|a, b| a == b)
         .map(|chunk| (chunk[0], chunk.len()))
         .collect();
-
-    // Sort as to not have a different order every frame.
-    count.sort_unstable();
 
     for (entry, amount) in count {
         write!(&mut output, "'{entry}' ({amount}), ").unwrap();

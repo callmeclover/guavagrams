@@ -82,7 +82,7 @@ pub fn draw(frame: &mut Frame, state: &mut GameState) {
     frame.render_widget(Paragraph::new(lines), block_layout[0]);
     frame.render_widget(&tiles_block, block_layout[1]);
     frame.render_widget(
-        Paragraph::new(format_tile_list(&state.tileset.1)).wrap(Wrap { trim: false }),
+        Paragraph::new(format_tile_list(&mut state.tileset.1)).wrap(Wrap { trim: false }),
         tiles_block.inner(block_layout[1]),
     );
     frame.render_widget(&mut state.camera, layout[1]);
