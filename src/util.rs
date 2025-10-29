@@ -1,6 +1,7 @@
-use std::{fmt::Write, time::Duration};
+use std::fmt::Write;
 
 use rand::distr::weighted::WeightedIndex;
+use web_time::Duration;
 
 use crate::dictionary::LetterDistribution;
 
@@ -46,7 +47,7 @@ pub fn format_tile_list(hand: &mut [char]) -> String {
     let mut output: String = String::new();
 
     // Sort as to not have a different order every frame.
-    hand.sort();
+    hand.sort_unstable();
 
     // Create a map of every tile and how many of it we have.
     let count: Vec<(char, usize)> = hand

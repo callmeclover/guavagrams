@@ -5,18 +5,21 @@ mod ui;
 mod util;
 
 use std::{
+    cell::RefCell,
     collections::{HashMap, HashSet},
-    path::PathBuf,
-    time::{Duration, Instant},
+    rc::Rc,
 };
 
 use camera::Camera;
 use color_eyre::Result;
+#[cfg(not(target_family = "wasm"))]
 use crossterm::event;
-use dictionary::{Distribution, get_dictionary, list_dictionaries};
+use dictionary::{Distribution, get_dictionary};
 use grid::Grid;
 use ratatui::prelude::*;
+use ratzilla::{WebGl2Backend, WebRenderer, backend::webgl2::WebGl2BackendOptions};
 use ui::{draw, event_handler};
+use web_time::Instant;
 
 #[derive(Clone)]
 struct GameState {
@@ -33,14 +36,11 @@ struct GameState {
 
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
 fn main() -> Result<()> {
-    color_eyre::install()?;
-
-    let dictionary_list: Vec<PathBuf> = list_dictionaries();
-    let dictionary: HashSet<String> = get_dictionary(&dictionary_list[0])?;
+    std::panic::set_hook(Box::new(console_error_panic_hook::hook));
 
     let grid: Grid<Option<char>> = Grid::default();
-    let mut state: GameState = GameState {
-        dictionary,
+    let state: Rc<RefCell<GameState>> = Rc::new(RefCell::new(GameState {
+        dictionary: get_dictionary()?,
         camera: Camera::new(grid),
         distribution: Distribution::Bananagrams,
         tileset: {
@@ -81,28 +81,32 @@ fn main() -> Result<()> {
             ('z', 10),
         ]),
         status: Span::default(),
-    };
+    }));
 
-    let mut terminal = ratatui::init();
-    loop {
-        terminal
-            .draw(|frame| draw(frame, &mut state))
-            .expect("failed to draw frame");
+    let terminal = Terminal::new(
+        WebGl2Backend::new_with_options(WebGl2BackendOptions::new().enable_mouse_selection())
+            .expect("could not build webgl2 backend"),
+    )?;
 
-        if event::poll(Duration::from_millis(50))? {
-            match event_handler(&mut state) {
+    terminal.on_key_event({
+        let state = state.clone();
+        move |event| {
+            let mut state = state.borrow_mut();
+            match event_handler(&event, &mut state) {
                 Ok(response) => match response {
-                    EventResponse::Quit => break,
                     EventResponse::ChangeStatus(new_status) => state.status = new_status,
-                    EventResponse::Pass => (),
+                    EventResponse::Quit | EventResponse::Pass => (),
                 },
                 Err(exception) => {
                     state.status = exception.to_string().red();
                 }
             }
         }
-    }
-    ratatui::restore();
+    });
+    terminal.draw_web(move |frame| {
+        let mut state = state.borrow_mut();
+        draw(frame, &mut state);
+    });
 
     Ok(())
 }
