@@ -1,8 +1,4 @@
-use std::{
-    collections::HashSet,
-    path::{Path, PathBuf},
-    sync::LazyLock,
-};
+use std::{collections::HashSet, path::PathBuf, sync::LazyLock};
 
 use csv::{Reader, StringRecord};
 use rand::{distr::Distribution as _, rngs::ThreadRng, seq::SliceRandom};
@@ -27,15 +23,17 @@ pub fn list_dictionaries() -> Vec<PathBuf> {
 }
 
 /// Reads a dictionary of words from a CSV file.
-pub fn get_dictionary(path: &Path) -> csv::Result<HashSet<String>> {
-    Ok(Reader::from_path(path)?
-        .into_records()
-        .map(|x: Result<StringRecord, csv::Error>| {
-            x.expect("Loading dictionary failed.")
-                .as_slice()
-                .to_string()
-        })
-        .collect())
+pub fn get_dictionary() -> csv::Result<HashSet<String>> {
+    Ok(
+        Reader::from_reader(include_bytes!("../dictionaries/scrabble.csv").as_slice())
+            .into_records()
+            .map(|x: Result<StringRecord, csv::Error>| {
+                x.expect("Loading dictionary failed.")
+                    .as_slice()
+                    .to_string()
+            })
+            .collect(),
+    )
 }
 
 pub type LetterDistribution = Vec<(char, usize)>;

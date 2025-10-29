@@ -1,5 +1,6 @@
-use std::{rc::Rc, time::Instant};
+use std::rc::Rc;
 
+#[cfg(not(target_family = "wasm"))]
 use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
 use itertools::Itertools;
 use rand::{rngs::ThreadRng, seq::SliceRandom};
@@ -10,6 +11,8 @@ use ratatui::{
     text::{Line, Span},
     widgets::{Block, BorderType, Borders, Paragraph, Wrap},
 };
+use ratzilla::event::{KeyCode, KeyEvent};
+use web_time::Instant;
 
 use crate::{
     Error, EventResponse, GameState,
@@ -90,103 +93,97 @@ pub fn draw(frame: &mut Frame, state: &mut GameState) {
 
 /// The event logic.
 #[allow(clippy::cast_precision_loss)]
-pub fn event_handler(state: &mut GameState) -> Result<EventResponse, Error> {
-    if let Event::Key(event) = event::read().expect("failed to read event")
-        && event.kind == KeyEventKind::Press
-    {
-        match event.code {
-            // Quit game
-            KeyCode::Esc | KeyCode::Char('Q') => return Ok(EventResponse::Quit),
+pub fn event_handler(event: &KeyEvent, state: &mut GameState) -> Result<EventResponse, Error> {
+    match event.code {
+        // Quit game
+        KeyCode::Esc | KeyCode::Char('Q') => return Ok(EventResponse::Quit),
 
-            // Movement controls
-            KeyCode::Right => state.camera += Coordinate(1, 0),
-            KeyCode::Left => state.camera += Coordinate(-1, 0),
-            KeyCode::Up => state.camera += Coordinate(0, 1),
-            KeyCode::Down => state.camera += Coordinate(0, -1),
+        // Movement controls
+        KeyCode::Right => state.camera += Coordinate(1, 0),
+        KeyCode::Left => state.camera += Coordinate(-1, 0),
+        KeyCode::Up => state.camera += Coordinate(0, 1),
+        KeyCode::Down => state.camera += Coordinate(0, -1),
 
-            // Letter controls
-            KeyCode::Char('G') => {
-                if !state.tileset.1.is_empty() {
-                    return Err(Error::HandHasTiles);
-                }
+        // Letter controls
+        KeyCode::Char('G') => {
+            if !state.tileset.1.is_empty() {
+                return Err(Error::HandHasTiles);
+            }
 
-                let words: Vec<String> = state.camera.grid.scan_for_words();
-                if let Err(exception) = state
-                    .camera
-                    .grid
-                    .validate_connectivity()
-                    .and_then(|()| Grid::validate_words(&words, &state.dictionary))
-                {
-                    state.score -= state.score / 20;
-                    return Err(exception);
-                }
+            let words: Vec<String> = state.camera.grid.scan_for_words();
+            if let Err(exception) = state
+                .camera
+                .grid
+                .validate_connectivity()
+                .and_then(|()| Grid::validate_words(&words, &state.dictionary))
+            {
+                state.score -= state.score / 20;
+                return Err(exception);
+            }
 
-                state.score += Grid::score_grid(&words, &state.scoretable);
+            state.score += Grid::score_grid(&words, &state.scoretable);
 
-                if state.tileset.0.is_empty() {
-                    state.game_end = Some(Instant::now());
-                    return Ok(EventResponse::ChangeStatus("Guavagrams!".green()));
-                }
+            if state.tileset.0.is_empty() {
+                state.game_end = Some(Instant::now());
+                return Ok(EventResponse::ChangeStatus("Guavagrams!".green()));
+            }
+            state
+                .tileset
+                .1
+                .append(&mut Distribution::pull_from_pile(&mut state.tileset.0, 1)?);
+            return Ok(EventResponse::ChangeStatus("Peel!".green()));
+        }
+        KeyCode::Char(letter)
+            if event.ctrl && state.tileset.1.contains(&letter) && state.game_end.is_none() =>
+        {
+            if state.tileset.0.len() >= 3 {
                 state
                     .tileset
                     .1
-                    .append(&mut Distribution::pull_from_pile(&mut state.tileset.0, 1)?);
-                return Ok(EventResponse::ChangeStatus("Peel!".green()));
-            }
-            KeyCode::Char(letter)
-                if event.modifiers.contains(KeyModifiers::CONTROL)
-                    && state.tileset.1.contains(&letter)
-                    && state.game_end.is_none() =>
-            {
-                if state.tileset.0.len() >= 3 {
-                    state
-                        .tileset
-                        .1
-                        .append(&mut Distribution::pull_from_pile(&mut state.tileset.0, 3)?);
-                    state.tileset.0.push(
-                        state.tileset.1.remove(
-                            state
-                                .tileset
-                                .1
-                                .iter()
-                                .position(|x: &char| *x == letter)
-                                .ok_or(Error::NoMoreTiles)?,
-                        ),
-                    );
-
-                    state.score -= state.score / 20;
-                    state.tileset.0.shuffle(&mut ThreadRng::default());
-                }
-
-                return Ok(EventResponse::ChangeStatus(
-                    "Deducted 5% of points for trading in tiles.".red(),
-                ));
-            }
-            KeyCode::Char(letter)
-                if (letter.is_lowercase() || !letter.is_alphabetic())
-                    && state.distribution.contains_letter(letter)
-                    && state.tileset.1.contains(&letter)
-                    && state.game_end.is_none() =>
-            {
-                // Check if a tile was actually put down before removing it from our hand.
-                if state.camera.put(letter) {
+                    .append(&mut Distribution::pull_from_pile(&mut state.tileset.0, 3)?);
+                state.tileset.0.push(
                     state.tileset.1.remove(
                         state
                             .tileset
                             .1
                             .iter()
                             .position(|x: &char| *x == letter)
-                            .unwrap(),
-                    );
-                }
+                            .ok_or(Error::NoMoreTiles)?,
+                    ),
+                );
+
+                state.score -= state.score / 20;
+                state.tileset.0.shuffle(&mut ThreadRng::default());
             }
-            KeyCode::Backspace if state.game_end.is_none() => {
-                if let Some(tile) = state.camera.pick_up() {
-                    state.tileset.1.push(tile);
-                }
-            }
-            _ => (),
+
+            return Ok(EventResponse::ChangeStatus(
+                "Deducted 5% of points for trading in tiles.".red(),
+            ));
         }
+        KeyCode::Char(letter)
+            if (letter.is_lowercase() || !letter.is_alphabetic())
+                && state.distribution.contains_letter(letter)
+                && state.tileset.1.contains(&letter)
+                && state.game_end.is_none() =>
+        {
+            // Check if a tile was actually put down before removing it from our hand.
+            if state.camera.put(letter) {
+                state.tileset.1.remove(
+                    state
+                        .tileset
+                        .1
+                        .iter()
+                        .position(|x: &char| *x == letter)
+                        .unwrap(),
+                );
+            }
+        }
+        KeyCode::Backspace if state.game_end.is_none() => {
+            if let Some(tile) = state.camera.pick_up() {
+                state.tileset.1.push(tile);
+            }
+        }
+        _ => (),
     }
 
     Ok(EventResponse::Pass)

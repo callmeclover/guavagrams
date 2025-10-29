@@ -75,7 +75,11 @@ impl Widget for &mut Camera {
                     ..=clamped_x.saturating_add((area.width / 4) as usize)
                 {
                     let span = if GridIndex(x, y) == cursor_index {
-                        self.grid[GridIndex(x, y)].unwrap_or('.').to_string().black().on_white()
+                        self.grid[GridIndex(x, y)]
+                            .unwrap_or('.')
+                            .to_string()
+                            .black()
+                            .on_white()
                     } else {
                         self.grid[GridIndex(x, y)].map_or_else(
                             || '.'.to_string().dark_gray(),
